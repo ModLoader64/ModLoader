@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>ModLoader_CLI</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>ModLoader_CLI.ModLoader_CLI</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModLoader-API\ModLoader-API.csproj" />
+    <ProjectReference Include="..\ModLoader-Core\ModLoader-Core.csproj" />
+  </ItemGroup>
+
+</Project>
