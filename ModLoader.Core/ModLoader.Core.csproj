@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>ModLoader_Core</RootNamespace>
+    <RootNamespace>ModLoader.Core</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ModLoader-API\ModLoader-API.csproj" />
+    <ProjectReference Include="..\ModLoader.API\ModLoader.API.csproj" />
   </ItemGroup>
 
 </Project>

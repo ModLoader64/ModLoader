@@ -1,4 +1,4 @@
-﻿using ModLoader_API;
+﻿using ModLoader.API;
 
 namespace ModLoader_PluginTest;
 

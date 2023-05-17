@@ -1,9 +1,9 @@
-﻿using ModLoader_API;
+﻿using ModLoader.API;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace ModLoader_Core;
+namespace ModLoader.Core;
 
 public class PluginLoader
 

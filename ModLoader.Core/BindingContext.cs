@@ -1,6 +1,6 @@
-﻿using ModLoader_API;
+﻿using ModLoader.API;
 
-namespace ModLoader_Core;
+namespace ModLoader.Core;
 
 public class BindingContext
 {

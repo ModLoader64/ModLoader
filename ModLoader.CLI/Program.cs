@@ -1,4 +1,4 @@
-﻿namespace ModLoader_CLI;
+﻿namespace ModLoader.CLI;
 class ModLoader_CLI
 {
     static void Main(string[] args)

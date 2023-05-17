@@ -3,16 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader-API", "ModLoader-API\ModLoader-API.csproj", "{2773CA29-56A4-481A-9397-BA9895004FBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.API", "ModLoader.API\ModLoader.API.csproj", "{2773CA29-56A4-481A-9397-BA9895004FBC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader-CLI", "ModLoader-CLI\ModLoader-CLI.csproj", "{6AE8B2BC-AFB0-48F1-B53D-B575004948E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.CLI", "ModLoader.CLI\ModLoader.CLI.csproj", "{6AE8B2BC-AFB0-48F1-B53D-B575004948E8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader-PluginTest", "ModLoader-PluginTest\ModLoader-PluginTest.csproj", "{CFEA8EA3-CBF0-4218-BFE4-5E6D8BCD450A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.PluginTest", "ModLoader.PluginTest\ModLoader.PluginTest.csproj", "{CFEA8EA3-CBF0-4218-BFE4-5E6D8BCD450A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2773CA29-56A4-481A-9397-BA9895004FBC} = {2773CA29-56A4-481A-9397-BA9895004FBC}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader-Core", "ModLoader-Core\ModLoader-Core.csproj", "{DE31221A-0388-4DFD-9B39-4B7B0C14320F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.Core", "ModLoader.Core\ModLoader.Core.csproj", "{DE31221A-0388-4DFD-9B39-4B7B0C14320F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

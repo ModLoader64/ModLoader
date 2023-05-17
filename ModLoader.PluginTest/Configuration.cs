@@ -1,4 +1,4 @@
-﻿using ModLoader_API;
+﻿using ModLoader.API;
 using System.Text.Json.Serialization;
 
 namespace ModLoader_PluginTest

@@ -1,4 +1,4 @@
-﻿namespace ModLoader_API;
+﻿namespace ModLoader.API;
 
 public interface BindingInterface
 {

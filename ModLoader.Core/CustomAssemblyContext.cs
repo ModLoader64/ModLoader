@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
 
-namespace ModLoader_Core;
+namespace ModLoader.Core;
 
 public class CustomAssemblyContext : AssemblyLoadContext
 {

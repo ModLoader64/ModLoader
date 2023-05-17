@@ -1,7 +1,7 @@
-﻿using ModLoader_API;
+﻿using ModLoader.API;
 using System.Formats.Tar;
 
-namespace ModLoader_Core;
+namespace ModLoader.Core;
 
 public class PluginContext : PluginInterface
 {
