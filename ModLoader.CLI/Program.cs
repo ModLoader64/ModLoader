@@ -1,10 +1,15 @@
-﻿namespace ModLoader.CLI;
+﻿using System.Reflection;
+
+namespace ModLoader.CLI;
+
 class ModLoader_CLI
 {
     static void Main(string[] args)
     {
         Console.WriteLine("ModLoader");
-        Console.WriteLine("V0.0.1");
+        Version version = Assembly.GetExecutingAssembly()!.GetName()!.Version!;
+        string displayableVersion = $"{version}";
+        Console.WriteLine(displayableVersion);
         Console.WriteLine("Authors: Drahsid, denoflions");
 
         Service.bindingLoader.scanBindingsFolder();
