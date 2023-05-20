@@ -48,6 +48,10 @@ public class BindingLoader
                         Console.WriteLine($"Constructing Binding: {curFile}");
                         context.Create();
                         type.GetCustomAttribute<BindingAttribute>()!.instance = context.plugin;
+                    }else if (Attribute.GetCustomAttribute(type, typeof(BoundMemoryAttribute)) != null)
+                    {
+                        Console.WriteLine($"Found [BoundMemory] on {type}");
+                        MemoryBinding.SetBoundClass(type);
                     }
                 }
             }

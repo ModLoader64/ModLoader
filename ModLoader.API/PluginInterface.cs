@@ -11,9 +11,4 @@ public interface PluginInterface
     /// </summary>
     void Destroy();
 
-    /// <summary>
-    /// Called when the bound program renders a new frame.
-    /// </summary>
-    void OnTick();
-
 }

@@ -23,10 +23,4 @@ public class Plugin : PluginInterface
         Console.WriteLine("Destroy");
     }
 
-    public void OnTick()
-    {
-        if (MemoryAccess.ram == null) return;
-        Console.WriteLine(MemoryAccess.ram.ReadU32(0).ToString());
-    }
-
 }

@@ -3,11 +3,6 @@
 public interface BindingInterface
 {
     /// <summary>
-    /// Access the bound program's memory.
-    /// </summary>
-    public Memory Memory { get; set; }
-
-    /// <summary>
     /// Initialize the binding.
     /// </summary>
     public void InitBinding();
@@ -53,5 +48,22 @@ public interface BindingInterface
     /// <param name="file"></param>
     /// <returns>If the load was successful.</returns>
     public bool LoadState(string file);
+
+}
+
+/// <summary>
+/// Required to be on the entry point of a bound program.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class BindingAttribute : Attribute
+{
+
+    public string name { get; set; }
+    public BindingInterface? instance { get; set; }
+
+    public BindingAttribute(string name)
+    {
+        this.name = name;
+    }
 
 }

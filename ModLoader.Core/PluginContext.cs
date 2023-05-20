@@ -57,9 +57,4 @@ public class PluginContext : PluginInterface
     {
         plugin!.Init();
     }
-
-    public void OnTick()
-    {
-        plugin!.OnTick();
-    }
 }
