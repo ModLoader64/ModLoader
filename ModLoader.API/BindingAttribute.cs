@@ -7,6 +7,7 @@ public class BindingAttribute : Attribute
 {
 
     public string name { get; set; }
+    public BindingInterface? instance { get; set; }
 
     public BindingAttribute(string name)
     {

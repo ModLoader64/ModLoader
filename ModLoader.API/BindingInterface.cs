@@ -2,19 +2,15 @@
 
 public interface BindingInterface
 {
-
-    /// <summary>
-    /// EventHandler for if the bound program is reset by the user.
-    /// </summary>
-    public EventHandler<EventEmpty> OnBindingReset { get; set; }
-    /// <summary>
-    /// EventHandler for when the bound program renders a new frame.
-    /// </summary>
-    public EventHandler<EventNewFrame> OnNewFrame { get; set; }
     /// <summary>
     /// Access the bound program's memory.
     /// </summary>
     public Memory Memory { get; set; }
+
+    /// <summary>
+    /// Initialize the binding.
+    /// </summary>
+    public void InitBinding();
 
     /// <summary>
     /// Starts the bound program.

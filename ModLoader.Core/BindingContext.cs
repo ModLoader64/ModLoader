@@ -19,7 +19,7 @@ public class BindingContext
 
     public void Create()
     {
-        Directory.SetCurrentDirectory(parentDir);
+        Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + parentDir);
         plugin = (BindingInterface)Activator.CreateInstance(type)!;
     }
 

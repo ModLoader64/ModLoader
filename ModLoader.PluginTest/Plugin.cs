@@ -1,6 +1,6 @@
 ﻿using ModLoader.API;
 
-namespace ModLoader_PluginTest;
+namespace ModLoader.PluginTest;
 
 [Plugin("PluginTest")]
 public class Plugin : PluginInterface
@@ -25,7 +25,8 @@ public class Plugin : PluginInterface
 
     public void OnTick()
     {
-        Console.WriteLine("OnTick");
+        if (MemoryAccess.ram == null) return;
+        Console.WriteLine(MemoryAccess.ram.ReadU32(0).ToString());
     }
 
 }

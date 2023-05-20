@@ -10,22 +10,27 @@ public class BindingLoader
     public Dictionary<string, BindingContext> plugins = new Dictionary<string, BindingContext>();
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public bool loadPlugin(string file, CustomAssemblyContext c)
+    public bool LoadPlugin(string file, CustomAssemblyContext c)
     {
         var curFile = Path.GetFullPath(file);
-        if (Path.GetExtension(curFile) == ".dll")
+        if (Path.GetExtension(curFile) == ".dll" && Path.GetFileNameWithoutExtension(curFile).ToLowerInvariant().Contains("ModLoader".ToLowerInvariant()))
         {
-            var s = new FileStream(curFile, FileMode.Open);
+            FileStream? s = null;
             Assembly? data = null;
             try
             {
+                s = new FileStream(curFile, FileMode.Open);
                 data = c.LoadFromStream(s);
+                s.Close();
             }
             catch (BadImageFormatException)
             {
 
             }
-            s.Close();
+            catch (IOException)
+            {
+
+            }
             if (data != null)
             {
                 var types = data.GetTypes();
@@ -42,7 +47,7 @@ public class BindingLoader
                         }
                         Console.WriteLine($"Constructing Binding: {curFile}");
                         context.Create();
-                        return true;
+                        type.GetCustomAttribute<BindingAttribute>()!.instance = context.plugin;
                     }
                 }
             }
@@ -51,7 +56,7 @@ public class BindingLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void scanBindingsFolder()
+    public void ScanBindingsFolder()
     {
         string pluginDir = "./bindings";
         if (!Directory.Exists(pluginDir))
@@ -74,8 +79,7 @@ public class BindingLoader
             var c = new CustomAssemblyContext();
             foreach (var file in files)
             {
-                var result = loadPlugin(file, c);
-                if (result) break;
+                LoadPlugin(file, c);
             }
         }
     }

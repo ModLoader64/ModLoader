@@ -1,0 +1,8 @@
+msbuild = C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe
+
+rule build_project
+  command = $msbuild ModLoader.sln -nologo -t:Clean;Build /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=17.0
+  description = Building ModLoader.sln...
+  
+build all: build_project
+default all

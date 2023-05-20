@@ -8,13 +8,25 @@
     <Nullable>enable</Nullable>
     <StartupObject>ModLoader.CLI.ModLoader_CLI</StartupObject>
 	<Deterministic>false</Deterministic>
-	<AssemblyVersion>0.0.1.*</AssemblyVersion>
-	<FileVersion>0.0.1.*</FileVersion>
+	<AssemblyVersion>0.0.*</AssemblyVersion>
+	<Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ModLoader.API\ModLoader.API.csproj" />
     <ProjectReference Include="..\ModLoader.Core\ModLoader.Core.csproj" />
+	<Using Include="System.Byte" Alias="u8" />
+	<Using Include="System.UInt16" Alias="u16" />
+	<Using Include="System.UInt32" Alias="u32" />
+	<Using Include="System.UInt64" Alias="u64" />
+	<Using Include="System.SByte" Alias="s8" />
+	<Using Include="System.Int16" Alias="s16" />
+	<Using Include="System.Int32" Alias="s32" />
+	<Using Include="System.Int64" Alias="s64" />
+	<Using Include="System.Half" Alias="f16" />
+	<Using Include="System.Single" Alias="f32" />
+	<Using Include="System.Double" Alias="f64" />
+	<Using Include="System.IntPtr" Alias="Ptr" />
   </ItemGroup>
 
 </Project>

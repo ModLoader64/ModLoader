@@ -1,5 +1,9 @@
 ﻿namespace ModLoader.API;
 
+public static class MemoryAccess
+{
+    public static Memory ram { get; set; }
+}
 public interface Memory
 {
     /// <summary>
@@ -52,11 +56,11 @@ public interface Memory
     public s32 ReadS32(Ptr address);
 
     /// <summary>
-    /// Read a float 16.
+    /// Read a SInt64.
     /// </summary>
     /// <param name="address"></param>
     /// <returns></returns>
-    public f16 ReadF16(Ptr address);
+    public s64 ReadS64(Ptr address);
 
     /// <summary>
     /// Read a float 32.
@@ -122,11 +126,11 @@ public interface Memory
     public void WriteS32(Ptr address, s32 value);
 
     /// <summary>
-    /// Write a float 16.
+    /// Write a SInt64.
     /// </summary>
     /// <param name="address"></param>
     /// <param name="value"></param>
-    public void WriteF16(Ptr address, f16 value);
+    public void WriteS64(Ptr address, s64 value);
 
     /// <summary>
     /// Write a float 32.

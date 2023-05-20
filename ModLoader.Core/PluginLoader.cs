@@ -18,7 +18,27 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void loadPlugin(string file, CustomAssemblyContext c)
+    public string[] GetModIdentifiers()
+    {
+        List<string> str = new List<string>();
+        foreach (var plugin in plugins)
+        {
+            str.Add(plugin.Value.identifier);
+        }
+        return str.ToArray();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public void InitPlugins()
+    {
+        foreach (var plugin in plugins)
+        {
+            plugin.Value.Init();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public void LoadPlugin(string file, CustomAssemblyContext c)
     {
         var curFile = Path.GetFullPath(file);
         if (Path.GetExtension(curFile) == ".dll")
@@ -32,10 +52,11 @@ public class PluginLoader
                 var types = data.GetTypes();
                 foreach (var type in types)
                 {
+                    EventSystem.HookUpAttributedDelegates(type, null);
                     if (Attribute.GetCustomAttribute(type, typeof(PluginAttribute)) != null)
                     {
-                        Console.WriteLine(data);
-                        var context = new PluginContext(curFile, type, c, this);
+                        Console.WriteLine(data.ToString());
+                        var context = new PluginContext(curFile, type, c, this, data.ToString());
                         var fields = type.GetRuntimeFields();
                         foreach (var field in fields)
                         {
@@ -74,7 +95,7 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void loadPlugins()
+    public void LoadPlugins()
     {
         string pluginDir = "./mods";
         if (!Directory.Exists(pluginDir))
@@ -96,7 +117,7 @@ public class PluginLoader
             var c = new CustomAssemblyContext();
             foreach ( var file in files )
             {
-                loadPlugin(file, c);
+                LoadPlugin(file, c);
             }
         }
     }

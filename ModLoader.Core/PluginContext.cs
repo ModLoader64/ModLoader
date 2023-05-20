@@ -13,14 +13,16 @@ public class PluginContext : PluginInterface
     PluginLoader parent;
     bool hotloadingEnabled = false;
     Type type;
+    public readonly string identifier;
 
-    public PluginContext(string assemblyPath, Type type, CustomAssemblyContext context, PluginLoader parent)
+    public PluginContext(string assemblyPath, Type type, CustomAssemblyContext context, PluginLoader parent, string identifier)
     {
         this.context = context;
         this.type = type;
         attribute = (PluginAttribute)Attribute.GetCustomAttribute(type, typeof(PluginAttribute))!;
         assembly = assemblyPath;
         this.parent = parent;
+        this.identifier = identifier;
     }
 
     public void Create()
@@ -42,7 +44,7 @@ public class PluginContext : PluginInterface
         Thread.Sleep(1000);
         context = null!;
         Console.WriteLine($"Reconstructing {plugin}");
-        this.parent.loadPlugin(assembly, new CustomAssemblyContext());
+        this.parent.LoadPlugin(assembly, new CustomAssemblyContext());
     }
 
     public void Destroy()
