@@ -2,7 +2,7 @@
 
 public class EventNewFrame : IEvent
 {
-    public string Id { get; set; } = "OnTick";
+    public string Id { get; set; } = "OnFrame";
     public int frame { get; set; }
 
     public EventNewFrame(int frame)

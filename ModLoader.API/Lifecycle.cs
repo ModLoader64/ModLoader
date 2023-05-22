@@ -1,11 +1,11 @@
 ﻿namespace ModLoader.API;
 
-public class OnTickAttribute : Attribute
+public class OnFrameAttribute : Attribute
 {
 
-    public string Id { get; set; } = "OnTick";
+    public string Id { get; set; } = "OnFrame";
 
-    public OnTickAttribute() { }
+    public OnFrameAttribute() { }
 }
 
 public class OnViUpdateAttribute : Attribute

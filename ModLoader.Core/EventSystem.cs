@@ -16,10 +16,10 @@ namespace ModLoader.Core
                     Console.WriteLine($"Found [EventHandler] in {t} method {m2.Name}");
                     PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr.Id, DelegateHelper.CreateDelegate(m2, instance)));
                 }
-                var attr2 = m2.GetCustomAttribute<OnTickAttribute>();
+                var attr2 = m2.GetCustomAttribute<OnFrameAttribute>();
                 if (attr2 != null && m2.IsStatic)
                 {
-                    Console.WriteLine($"Found [OnTick] in {t} method {m2.Name}");
+                    Console.WriteLine($"Found [OnFrame] in {t} method {m2.Name}");
                     PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr2.Id, DelegateHelper.CreateDelegate(m2, instance)));
                 }
                 var attr3 = m2.GetCustomAttribute<OnViUpdateAttribute>();

@@ -153,5 +153,4 @@ public static class Memory
 [AttributeUsage(AttributeTargets.Class)]
 public class BoundMemoryAttribute : Attribute
 {
-    public BoundMemoryAttribute() { }
 }
