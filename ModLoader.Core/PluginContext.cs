@@ -1,12 +1,9 @@
-﻿using ModLoader.API;
-using System.Formats.Tar;
+﻿namespace ModLoader.Core;
 
-namespace ModLoader.Core;
-
-public class PluginContext : PluginInterface
+public class PluginContext
 {
     CustomAssemblyContext context;
-    PluginInterface? plugin;
+    IPluginDelegates? plugin;
     public PluginAttribute attribute;
     FileSystemWatcher? watcher;
     string assembly;
@@ -27,7 +24,7 @@ public class PluginContext : PluginInterface
 
     public void Create()
     {
-        plugin = (PluginInterface)Activator.CreateInstance(type)!;
+        plugin = new PluginDelegates(type);
         watcher = new FileSystemWatcher(Path.GetDirectoryName(assembly)!);
         watcher.EnableRaisingEvents = hotloadingEnabled;
         watcher.Changed += OnHotLoad;
@@ -41,6 +38,7 @@ public class PluginContext : PluginInterface
         plugin = null!;
         attribute = null!;
         context.Unload();
+        // Gotta be a better way to do this. Sleep is bad.
         Thread.Sleep(1000);
         context = null!;
         Console.WriteLine($"Reconstructing {plugin}");

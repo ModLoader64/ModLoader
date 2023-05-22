@@ -1,6 +1,4 @@
-﻿using ModLoader.API;
-using ModLoader.API.EventBus;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ModLoader.Core

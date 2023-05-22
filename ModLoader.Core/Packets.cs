@@ -1,4 +1,4 @@
-﻿using ModLoader.API;
+﻿
 using Network.Packets;
 
 namespace ModLoader.Core

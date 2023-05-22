@@ -1,4 +1,4 @@
-﻿namespace ModLoader.API.EventBus;
+﻿namespace ModLoader.API;
 
 public class EventNewFrame : IEvent
 {

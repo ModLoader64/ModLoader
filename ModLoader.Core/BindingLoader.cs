@@ -1,5 +1,4 @@
-﻿using ModLoader.API;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace ModLoader.Core;
@@ -8,6 +7,11 @@ public class BindingLoader
 {
 
     public Dictionary<string, BindingContext> plugins = new Dictionary<string, BindingContext>();
+
+    public BindingLoader()
+    {
+        Memory.RAM = (IMemoryDelegates)new MemoryDelegates(typeof(DefaultMemory));
+    }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public bool LoadPlugin(string file, CustomAssemblyContext c)
@@ -47,11 +51,10 @@ public class BindingLoader
                         }
                         Console.WriteLine($"Constructing Binding: {curFile}");
                         context.Create();
-                        type.GetCustomAttribute<BindingAttribute>()!.instance = context.plugin;
                     }else if (Attribute.GetCustomAttribute(type, typeof(BoundMemoryAttribute)) != null)
                     {
                         Console.WriteLine($"Found [BoundMemory] on {type}");
-                        MemoryBinding.SetBoundClass(type);
+                        Memory.RAM = new MemoryDelegates(type);
                     }
                 }
             }

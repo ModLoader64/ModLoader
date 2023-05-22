@@ -1,7 +1,4 @@
-﻿using ModLoader.API.EventBus;
-using ModLoader.API;
-
-namespace ModLoader.PluginTest;
+﻿namespace ModLoader.PluginTest;
 
 public class HandlerTests
 {
@@ -14,6 +11,7 @@ public class HandlerTests
     [OnTick]
     public static void OnTick(EventNewFrame e)
     {
+        Memory.RAM.ReadU8(0);
     }
 
     [OnViUpdate]

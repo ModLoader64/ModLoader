@@ -1,5 +1,4 @@
-﻿using ModLoader.API;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 
 namespace ModLoader.Core
@@ -31,10 +30,14 @@ namespace ModLoader.Core
     public class CoreConfigurationHandler
     {
 
-        public static CoreConfiguration config = new CoreConfiguration();
+        public static CoreConfiguration? config;
 
         public static void SetupCoreConfiguration()
         {
+            if (!Directory.Exists("./config"))
+            {
+                Directory.CreateDirectory("./config");
+            }
             Type type = typeof(CoreConfigurationHandler);
             var fields = type.GetRuntimeFields();
             foreach (var field in fields)

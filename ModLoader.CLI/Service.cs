@@ -1,6 +1,4 @@
-﻿using ModLoader.Core;
-
-namespace ModLoader.CLI;
+﻿namespace ModLoader.CLI;
 
 internal class Service
 {

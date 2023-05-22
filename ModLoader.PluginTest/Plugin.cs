@@ -1,24 +1,17 @@
-﻿using ModLoader.API;
-
-namespace ModLoader.PluginTest;
+﻿namespace ModLoader.PluginTest;
 
 [Plugin("PluginTest")]
-public class Plugin : PluginInterface
+public class Plugin : IPlugin
 {
 
     public static Configuration? Configuration { get; set; }
 
-    public Plugin() {
-        Console.WriteLine("PluginTest is now loaded!");
-        Console.WriteLine(Configuration!.test);
-    }
-
-    public void Init()
+    public static void Init()
     {
         Console.WriteLine("Init");
     }
 
-    public void Destroy()
+    public static void Destroy()
     {
         Console.WriteLine("Destroy");
     }

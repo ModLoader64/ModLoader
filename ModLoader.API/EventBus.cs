@@ -1,4 +1,4 @@
-﻿namespace ModLoader.API.EventBus
+﻿namespace ModLoader.API
 {
 
     public class EventRegistration
@@ -8,8 +8,8 @@
 
         public EventRegistration(string id, Delegate action)
         {
-            this.Id = id;
-            this.Action = action;
+            Id = id;
+            Action = action;
         }
     }
 

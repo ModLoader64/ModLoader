@@ -24,6 +24,7 @@
 	 <Using Include="System.Single" Alias="f32" />
 	 <Using Include="System.Double" Alias="f64" />
 	 <Using Include="System.IntPtr" Alias="Ptr" />
+	 <Using Include="ModLoader.API"/>
   </ItemGroup>
 
 </Project>

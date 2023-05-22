@@ -1,6 +1,4 @@
-﻿using ModLoader.API;
-
-namespace ModLoader.Core;
+﻿namespace ModLoader.Core;
 
 public class BindingContext
 {
@@ -8,7 +6,7 @@ public class BindingContext
     CustomAssemblyContext context;
     Type type;
     string parentDir;
-    public BindingInterface? plugin;
+    public IBindingDelegates? plugin;
 
     public BindingContext(CustomAssemblyContext context, Type type, string parentDir)
     {
@@ -20,7 +18,7 @@ public class BindingContext
     public void Create()
     {
         Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + parentDir);
-        plugin = (BindingInterface)Activator.CreateInstance(type)!;
+        plugin = (IBindingDelegates) new BindingDelegates(type);
     }
 
 }

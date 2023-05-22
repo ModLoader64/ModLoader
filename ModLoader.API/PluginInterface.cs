@@ -1,14 +1,14 @@
 ﻿namespace ModLoader.API;
-public interface PluginInterface
+public interface IPlugin
 {
     /// <summary>
     /// Called when the plugin needs to be initialized.
     /// </summary>
-    void Init();
+    public static abstract void Init();
 
     /// <summary>
     /// Called when the plugin needs to be destroyed.
     /// </summary>
-    void Destroy();
+    public static abstract void Destroy();
 
 }

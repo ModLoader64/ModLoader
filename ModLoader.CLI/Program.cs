@@ -1,7 +1,4 @@
-﻿using ModLoader.API;
-using ModLoader.API.EventBus;
-using ModLoader.Core;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace ModLoader.CLI;
 
@@ -24,7 +21,7 @@ class ModLoader_CLI
         Service.bindingLoader.ScanBindingsFolder();
         Service.loader.LoadPlugins();
 
-        if (CoreConfigurationHandler.config.multiplayer.isServer)
+        if (CoreConfigurationHandler.config!.multiplayer.isServer)
         {
             Service.server.StartServer(Service.loader);
         }
@@ -33,9 +30,9 @@ class ModLoader_CLI
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
             EventSystem.HookUpAttributedDelegates(typeof(ModLoader_CLI), null);
         }
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin.InitBinding();
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin.StartBinding();
+        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
+        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
+        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
 
     }
 }

@@ -1,5 +1,4 @@
-﻿using ModLoader.API;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -11,10 +10,6 @@ public class PluginLoader
     public Dictionary<string, PluginContext> plugins = new Dictionary<string, PluginContext>();
 
     public PluginLoader() {
-        if (!Directory.Exists("./config"))
-        {
-            Directory.CreateDirectory("./config");
-        }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -49,7 +44,7 @@ public class PluginLoader
             s.Close();
             if (data != null)
             {
-                var types = data.GetTypes();
+                Type[] types = data.GetTypes();
                 foreach (var type in types)
                 {
                     EventSystem.HookUpAttributedDelegates(type, null);

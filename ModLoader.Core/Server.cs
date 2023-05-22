@@ -1,6 +1,4 @@
-﻿using ModLoader.API;
-using ModLoader.API.EventBus;
-using Network;
+﻿using Network;
 using Network.Enums;
 using System.Reflection;
 
