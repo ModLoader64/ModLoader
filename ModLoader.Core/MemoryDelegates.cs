@@ -52,6 +52,8 @@ namespace ModLoader.Core {
         
         public WriteF64_Delegate WriteF64 { get; set; }//;
         
+        public InvalidateCachedCode_Delegate InvalidateCachedCode { get; set; }//;
+        
         public MemoryDelegates(System.Type binding) {
             ReadU8 = DelegateHelper.Cast<ReadU8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU8", new Type[] {typeof(System.UInt32),})!, null));
             ReadU16 = DelegateHelper.Cast<ReadU16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU16", new Type[] {typeof(System.UInt32),})!, null));
@@ -73,6 +75,7 @@ namespace ModLoader.Core {
             WriteS64 = DelegateHelper.Cast<WriteS64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS64", new Type[] {typeof(System.UInt32),typeof(System.Int64),})!, null));
             WriteF32 = DelegateHelper.Cast<WriteF32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF32", new Type[] {typeof(System.UInt32),typeof(System.Single),})!, null));
             WriteF64 = DelegateHelper.Cast<WriteF64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF64", new Type[] {typeof(System.UInt32),typeof(System.Double),})!, null));
+            InvalidateCachedCode = DelegateHelper.Cast<InvalidateCachedCode_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("InvalidateCachedCode", new Type[] {})!, null));
         }
     }
 }

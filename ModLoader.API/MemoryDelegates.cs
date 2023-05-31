@@ -50,6 +50,8 @@ namespace ModLoader.API {
     
     public delegate void WriteF64_Delegate(uint address, double value);
     
+    public delegate void InvalidateCachedCode_Delegate();
+    
     public interface IMemoryDelegates {
         
         public ReadU8_Delegate ReadU8 {get; set;}
@@ -72,5 +74,6 @@ namespace ModLoader.API {
         public WriteS64_Delegate WriteS64 {get; set;}
         public WriteF32_Delegate WriteF32 {get; set;}
         public WriteF64_Delegate WriteF64 {get; set;}
+        public InvalidateCachedCode_Delegate InvalidateCachedCode {get; set;}
     }
 }

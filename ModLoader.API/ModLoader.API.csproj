@@ -8,6 +8,14 @@
 	<Deterministic>false</Deterministic>
 	<AssemblyVersion>0.0.*</AssemblyVersion>
 	<Platforms>AnyCPU;x64</Platforms>
+	<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	<SignAssembly>False</SignAssembly>
+	<Title>ModLoader API</Title>
+	<Authors>denoflions, Drahsid</Authors>
+	<Company>ModLoader64</Company>
+	<IncludeSymbols>True</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

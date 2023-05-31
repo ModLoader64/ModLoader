@@ -1,18 +1,21 @@
-﻿namespace ModLoader.Core;
+﻿using System.Reflection;
+
+namespace ModLoader.Core;
 
 public class PluginContext
 {
     CustomAssemblyContext context;
+    public readonly Assembly ass;
     IPluginDelegates? plugin;
     public PluginAttribute attribute;
     FileSystemWatcher? watcher;
     string assembly;
     PluginLoader parent;
-    bool hotloadingEnabled = false;
+    public bool hotloadingEnabled = false;
     Type type;
     public readonly string identifier;
 
-    public PluginContext(string assemblyPath, Type type, CustomAssemblyContext context, PluginLoader parent, string identifier)
+    public PluginContext(string assemblyPath, Type type, CustomAssemblyContext context, PluginLoader parent, string identifier, Assembly ass)
     {
         this.context = context;
         this.type = type;
@@ -20,6 +23,15 @@ public class PluginContext
         assembly = assemblyPath;
         this.parent = parent;
         this.identifier = identifier;
+        this.ass = ass;
+    }
+
+    private void Setup()
+    {
+        foreach (Type type in ass.GetTypes())
+        {
+            EventSystem.HookUpAttributedDelegates(attribute.Name, type, null);
+        }
     }
 
     public void Create()
@@ -28,6 +40,7 @@ public class PluginContext
         watcher = new FileSystemWatcher(Path.GetDirectoryName(assembly)!);
         watcher.EnableRaisingEvents = hotloadingEnabled;
         watcher.Changed += OnHotLoad;
+        Setup();
     }
 
     void OnHotLoad(object sender, EventArgs e)
@@ -35,6 +48,7 @@ public class PluginContext
         Console.WriteLine($"Tearing down {plugin}");
         watcher!.EnableRaisingEvents = false;
         Destroy();
+        EventSystem.RemoveModHandlers(attribute.Name);
         plugin = null!;
         attribute = null!;
         context.Unload();

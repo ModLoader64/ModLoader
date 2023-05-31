@@ -6,4 +6,5 @@ internal class Service
     public static BindingLoader bindingLoader = new BindingLoader();
     public static Server server = new Server();
     public static Client client = new Client();
+    public static SignatureManager signatureManager = new SignatureManager();
 }

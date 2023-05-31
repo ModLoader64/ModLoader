@@ -19,3 +19,11 @@ public class EventNewVi : IEvent
     {
     }
 }
+
+
+public class EventEmulatorStart : IEvent
+{
+    public string Id { get; set; } = "OnEmulatorStart";
+
+    public EventEmulatorStart() { }
+}

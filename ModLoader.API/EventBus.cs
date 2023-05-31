@@ -1,80 +1,101 @@
-﻿namespace ModLoader.API
+﻿namespace ModLoader.API;
+
+public class EventRegistration
 {
+    public string Id { get; set; }
+    public Delegate Action { get; set; }
+    public string parentId { get; set; }
 
-    public class EventRegistration
+    public EventRegistration(string id, Delegate action, string parentId)
     {
-        public string Id { get; set; }
-        public Delegate Action { get; set; }
+        Id = id;
+        Action = action;
+        this.parentId = parentId;
+    }
+}
 
-        public EventRegistration(string id, Delegate action)
+public interface IEvent
+{
+    public string Id { get; set; }
+}
+
+public interface IEventBus
+{
+    public void RegisterEventHandler(EventRegistration reg);
+
+    public void UnregisterEventHandler(EventRegistration reg);
+
+    public void PushEvent(IEvent evt);
+
+    public void UnregisterAllByParentId(string parentId);
+
+}
+
+public delegate void EventDelegate(IEvent evt);
+
+public class EventBusImpl : IEventBus
+{
+    private Dictionary<string, List<EventRegistration>> handlers = new Dictionary<string, List<EventRegistration>>();
+
+    public void PushEvent(IEvent evt)
+    {
+        if (handlers.TryGetValue(evt.Id, out List<EventRegistration> value))
         {
-            Id = id;
-            Action = action;
+            foreach (var reg in value)
+            {
+                reg.Action.DynamicInvoke(evt);
+            }
         }
     }
 
-    public interface IEvent
+    public void RegisterEventHandler(EventRegistration reg)
     {
-        public string Id { get; set; }
-    }
-
-    public interface IEventBus
-    {
-        public void RegisterEventHandler(EventRegistration reg);
-
-        public void UnregisterEventHandler(EventRegistration reg);
-
-        public void PushEvent(IEvent evt);
-
-    }
-
-    public class EventBusImpl : IEventBus
-    {
-        private Dictionary<string, List<EventRegistration>> handlers = new Dictionary<string, List<EventRegistration>>();
-
-        public void PushEvent(IEvent evt)
+        if (!handlers.ContainsKey(reg.Id))
         {
-            if (handlers.TryGetValue(evt.Id, out List<EventRegistration> value))
+            handlers.Add(reg.Id, new List<EventRegistration>());
+        }
+        handlers[reg.Id].Add(reg);
+    }
+
+    public void UnregisterEventHandler(EventRegistration reg)
+    {
+        if (handlers.ContainsKey(reg.Id))
+        {
+            handlers[reg.Id].Remove(reg);
+        }
+    }
+
+    public void UnregisterAllByParentId(string parentId) { 
+        List<EventRegistration> eventRegistrations = new List<EventRegistration>();
+        foreach (var kvp in handlers)
+        {
+            foreach(var g in kvp.Value)
             {
-                foreach (var reg in value)
+                if (g.parentId == parentId)
                 {
-                    reg.Action.DynamicInvoke(evt);
+                    eventRegistrations.Add(g);
                 }
             }
         }
-
-        public void RegisterEventHandler(EventRegistration reg)
+        foreach(var evt in eventRegistrations)
         {
-            if (!handlers.ContainsKey(reg.Id))
-            {
-                Console.WriteLine($"{reg.Id} connected to bus.");
-                handlers.Add(reg.Id, new List<EventRegistration>());
-            }
-            handlers[reg.Id].Add(reg);
-        }
-
-        public void UnregisterEventHandler(EventRegistration reg)
-        {
-            if (handlers.ContainsKey(reg.Id))
-            {
-                handlers[reg.Id].Remove(reg);
-            }
+            UnregisterEventHandler(evt);
         }
     }
+}
 
-    public static class PubEventBus
+public static class PubEventBus
+{
+    public static readonly IEventBus bus = new EventBusImpl();
+}
+
+[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+public class EventHandlerAttribute : Attribute, IEvent
+{
+    public string Id { get; set; }
+
+    public EventHandlerAttribute(string id)
     {
-        public static readonly IEventBus bus = new EventBusImpl();
-    }
-
-    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class EventHandlerAttribute : Attribute
-    {
-        public string Id { get; set; }
-
-        public EventHandlerAttribute(string id)
-        {
-            Id = id;
-        }
+        Id = id;
     }
 }

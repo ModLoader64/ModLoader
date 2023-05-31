@@ -1,5 +1,6 @@
 ﻿using Network;
 using Network.Enums;
+using Network.Packets;
 
 namespace ModLoader.API;
 
@@ -123,4 +124,41 @@ public class Lobby
         this.players = new List<NetworkPlayer>();
         this.patch = patch;
     }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class ClientNetworkHandlerAttribute : Attribute, IEvent
+{
+    public string Id { get; set; }
+    public Type type { get; set; }
+
+    public ClientNetworkHandlerAttribute(Type type)
+    {
+        this.type = type;
+        Id = type.Name;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class ServerNetworkHandlerAttribute : Attribute, IEvent
+{
+    public string Id { get; set; }
+    public Type type { get; set; }
+
+    public ServerNetworkHandlerAttribute(Type type)
+    {
+        this.type = type;
+        this.Id = type.Name;
+    }
+}
+
+public interface INetworkingSender
+{
+    public void SendPacket<T>(T packet, string lobbytarget);
+}
+
+public static class NetworkSenders
+{
+    public static INetworkingSender Client;
+    public static INetworkingSender Server;
 }

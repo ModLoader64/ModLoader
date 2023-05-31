@@ -1,6 +1,7 @@
 ﻿namespace ModLoader.API;
 
-public class OnFrameAttribute : Attribute
+[AttributeUsage(AttributeTargets.Method)]
+public class OnFrameAttribute : Attribute, IEvent
 {
 
     public string Id { get; set; } = "OnFrame";
@@ -8,9 +9,18 @@ public class OnFrameAttribute : Attribute
     public OnFrameAttribute() { }
 }
 
-public class OnViUpdateAttribute : Attribute
+[AttributeUsage(AttributeTargets.Method)]
+public class OnViUpdateAttribute : Attribute, IEvent
 {
     public string Id { get; set; } = "OnViUpdate";
 
     public OnViUpdateAttribute() { }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class OnEmulatorStartAttribute : Attribute, IEvent
+{
+    public string Id { get; set; } = "OnEmulatorStart";
+
+    public OnEmulatorStartAttribute() { }
 }

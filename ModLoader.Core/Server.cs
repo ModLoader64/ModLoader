@@ -1,22 +1,41 @@
 ﻿using Network;
 using Network.Enums;
 using System.Reflection;
+using System.Text.Json;
 
 namespace ModLoader.Core;
 
-public class Server
+public class Server : INetworkingSender
 {
 
     private ServerConnectionContainer? container;
     public string serverAddr = "127.0.0.1";
     public int port = 25565;
     public PluginLoader? pluginLoader;
+    private Dictionary<string, EventSetupServerNetworkHandler> NetworkHandlerContainers = new Dictionary<string, EventSetupServerNetworkHandler>();
     public string[]? modSigs;
 
-    public Dictionary<string, Lobby> lobbies = new Dictionary<string, Lobby>();
+    public static Dictionary<string, Lobby> lobbies = new Dictionary<string, Lobby>();
 
     public void StartServer(PluginLoader? pluginLoader)
     {
+
+        foreach (MethodInfo m in GetType().GetRuntimeMethods())
+        {
+            if (m.Name == "OnNetworkSetupEvent")
+            {
+                Console.WriteLine("SERVER FUCKING FUCK");
+                InternalEventBus.bus.RegisterEventHandler(new EventRegistration("EventSetupServerNetworkHandler", DelegateHelper.CreateDelegate(m, this), ""));
+            }
+            else if (m.Name == "OnNetworkDisposeEvent")
+            {
+                InternalEventBus.bus.RegisterEventHandler(new EventRegistration("EventDisposeModNetworkHandlers", DelegateHelper.CreateDelegate(m, this), ""));
+            }
+            else if (m.Name == "OnPacketDecoded")
+            {
+                InternalEventBus.server.RegisterEventHandler(new EventRegistration("EventDecodedPacket", DelegateHelper.CreateDelegate(m, this), ""));
+            }
+        }
 
         this.pluginLoader = pluginLoader;
         modSigs = this.pluginLoader!.GetModIdentifiers();
@@ -26,11 +45,47 @@ public class Server
         container.AllowUDPConnections = true;
         container.UDPConnectionLimit = 2;
 
+        NetworkSenders.Server = this;
+
         container!.Start();
     }
 
     public void StopServer() {
         container!.Stop();
+    }
+
+    private void OnNetworkSetupEvent(EventSetupServerNetworkHandler e)
+    {
+        NetworkHandlerContainers.Add(e.attr.Id, e);
+    }
+
+    private void OnNetworkDisposeEvent(EventDisposeModNetworkHandlers e)
+    {
+        List<string> disposees = new List<string>();
+        foreach (var pair in NetworkHandlerContainers)
+        {
+            if (pair.Value.ModId == e.ModId)
+            {
+                disposees.Add(pair.Key);
+            }
+        }
+        foreach (var dispose in disposees)
+        {
+            NetworkHandlerContainers.Remove(dispose);
+        }
+    }
+
+    private void OnPacketDecoded(EventDecodedPacket e)
+    {
+        var settings = new Newtonsoft.Json.JsonSerializerSettings { TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto };
+        var b1 = Newtonsoft.Json.JsonConvert.DeserializeObject(e.payload, settings)!;
+        var type = b1.GetType();
+        if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupServerNetworkHandler? value))
+        {
+            if (value != null) {
+                value.method.Invoke(null, new object[] { b1 });
+            }
+        }
     }
 
     private void ConnectionTerminated(Connection connection, ConnectionType type, CloseReason reason)
@@ -84,6 +139,7 @@ public class Server
         {
             connection.RegisterPacketHandler<PacketClientHandshake>(OnHandshakePacket, this);
             connection.RegisterPacketHandler<PacketClientJoinDataResp>(OnClientJoinDataResp, this);
+            connection.RegisterRawDataHandler("ModData", DefaultModPacketHandler.OnServerModPacket);
         }
         else
         {
@@ -124,6 +180,21 @@ public class Server
         {
             var evt = new EventServerNetworkConnection(connection, ConnectionType.TCP);
             PubEventBus.bus.PushEvent(evt);
+        }
+    }
+
+    public void SendPacket<T>(T packet, string lobbytarget)
+    {
+        if (packet == null) return;
+        Lobby lobby;
+        lobbies.TryGetValue(lobbytarget, out lobby);
+        if (lobby == null) return;
+        foreach(var player in lobby.players)
+        {
+            if (player != null)
+            {
+                
+            }
         }
     }
 }

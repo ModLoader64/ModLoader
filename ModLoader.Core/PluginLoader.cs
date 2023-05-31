@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+﻿using System.Formats.Tar;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -33,6 +36,62 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
+    public void LoadPluginFromStream(Stream s, CustomAssemblyContext c, string name)
+    {
+        var data = c.LoadFromStream(s);
+        if (data != null)
+        {
+            Type[] types = data.GetTypes();
+            foreach (var type in types)
+            {
+                foreach(var a in type.GetCustomAttributes())
+                {
+                }
+                if (Attribute.GetCustomAttribute(type, typeof(PluginAttribute)) != null)
+                {
+                    Console.WriteLine(data.ToString());
+                    var context = new PluginContext(name, type, c, this, data.ToString(), data);
+                    if (Attribute.GetCustomAttribute(type, typeof(Hotloadable)) != null)
+                    {
+                        context.hotloadingEnabled = true;
+                    }
+                    var fields = type.GetRuntimeFields();
+                    foreach (var field in fields)
+                    {
+                        if (Attribute.GetCustomAttribute(field.FieldType, typeof(ConfigurationAttribute)) != null)
+                        {
+                            Console.WriteLine($"Found [Configuration] in {field}");
+                            var configFile = Path.GetFullPath($"./config/{context.attribute.Name}.json");
+                            if (!File.Exists(configFile))
+                            {
+                                Console.WriteLine("Config file does not exist for this context. Creating...");
+                                field.SetValue(null, Activator.CreateInstance(field.FieldType));
+                                var options = new JsonSerializerOptions { WriteIndented = true };
+                                string json = JsonSerializer.Serialize(field.GetValue(null), options);
+                                File.WriteAllText(configFile, json);
+                                Console.WriteLine(json);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Loading config file for context...");
+                                string json = File.ReadAllText(configFile);
+                                field.SetValue(null, JsonSerializer.Deserialize(json, field.FieldType));
+                            }
+                        }
+                    }
+                    if (!plugins.TryAdd(context.attribute.Name, context))
+                    {
+                        plugins.Remove(context.attribute.Name);
+                        plugins.Add(context.attribute.Name, context);
+                    }
+                    Console.WriteLine($"Constructing mod: {context.attribute.Name}");
+                    context.Create();
+                }
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public void LoadPlugin(string file, CustomAssemblyContext c)
     {
         var curFile = Path.GetFullPath(file);
@@ -40,49 +99,20 @@ public class PluginLoader
         {
             Console.WriteLine($"Scanning {curFile}");
             var s = new FileStream(curFile, FileMode.Open);
-            var data = c.LoadFromStream(s);
+            LoadPluginFromStream(s, c, curFile);
             s.Close();
-            if (data != null)
-            {
-                Type[] types = data.GetTypes();
-                foreach (var type in types)
-                {
-                    EventSystem.HookUpAttributedDelegates(type, null);
-                    if (Attribute.GetCustomAttribute(type, typeof(PluginAttribute)) != null)
-                    {
-                        Console.WriteLine(data.ToString());
-                        var context = new PluginContext(curFile, type, c, this, data.ToString());
-                        var fields = type.GetRuntimeFields();
-                        foreach (var field in fields)
+        }else if (Path.GetExtension(curFile) == ".nupkg"){
+            using (ZipArchive zip = ZipFile.Open(curFile, ZipArchiveMode.Read)) {
+                foreach (ZipArchiveEntry entry in zip.Entries) {
+                    if (entry.Name.Contains(".dll")) {
+                        var s = entry.Open();
+                        using (var ms = new MemoryStream())
                         {
-                            if (Attribute.GetCustomAttribute(field.FieldType, typeof(ConfigurationAttribute)) != null)
-                            {
-                                Console.WriteLine($"Found [Configuration] in {field}");
-                                var configFile = Path.GetFullPath($"./config/{context.attribute.Name}.json");
-                                if (!File.Exists(configFile))
-                                {
-                                    Console.WriteLine("Config file does not exist for this context. Creating...");
-                                    field.SetValue(null, Activator.CreateInstance(field.FieldType));
-                                    var options = new JsonSerializerOptions { WriteIndented = true };
-                                    string json = JsonSerializer.Serialize(field.GetValue(null), options);
-                                    File.WriteAllText(configFile, json);
-                                    Console.WriteLine(json);
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Loading config file for context...");
-                                    string json = File.ReadAllText(configFile);
-                                    field.SetValue(null, JsonSerializer.Deserialize(json, field.FieldType));
-                                }
-                            }
+                            s.CopyTo(ms);
+                            ms.Position = 0;
+                            LoadPluginFromStream(ms, c, file);
                         }
-                        if (!plugins.TryAdd(context.attribute.Name, context))
-                        {
-                            plugins.Remove(context.attribute.Name);
-                            plugins.Add(context.attribute.Name, context);
-                        }
-                        Console.WriteLine($"Constructing mod: {context.attribute.Name}");
-                        context.Create();
+                        s.Close();
                     }
                 }
             }
@@ -99,21 +129,28 @@ public class PluginLoader
             Directory.CreateDirectory(pluginDir);
         }
         var folders = Directory.GetDirectories(pluginDir);
-        if (folders.Length == 0)
+        var files = Directory.GetFiles(pluginDir);
+        if (folders.Length == 0 && files.Length == 0)
         {
             Console.WriteLine("No plugins found.");
             return;
         }
         Console.WriteLine("Starting plugin scan...");
-        foreach ( var folder in folders ) {
-            var files = Directory.GetFiles(folder);
-            if (files.Length == 0) continue;
+        foreach (var folder in folders) {
+            var _files = Directory.GetFiles(folder);
+            if (_files.Length == 0) continue;
             Console.WriteLine($"Creating context for {Path.GetFullPath(folder)}");
             var c = new CustomAssemblyContext();
-            foreach ( var file in files )
+            foreach ( var file in _files )
             {
                 LoadPlugin(file, c);
             }
+        }
+        foreach(var file in files)
+        {
+            Console.WriteLine($"Creating context for {Path.GetFullPath(file)}");
+            var c = new CustomAssemblyContext();
+            LoadPlugin(file, c);
         }
     }
 

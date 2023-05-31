@@ -1,34 +1,53 @@
-﻿using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace ModLoader.Core
+namespace ModLoader.Core;
+
+public class EventSystem
 {
-    public class EventSystem
+    public static void HookUpAttributedDelegates(string modId, Type t, object? instance)
     {
-        public static void HookUpAttributedDelegates(Type t, object? instance)
+        var m = t.GetRuntimeMethods();
+
+        List<Type> EventStuff = new List<Type> { typeof(EventHandlerAttribute), typeof(OnFrameAttribute), typeof(OnViUpdateAttribute), typeof(OnEmulatorStartAttribute) };
+        List<Type> ClientNetwork = new List<Type> { typeof(ClientNetworkHandlerAttribute) };
+        List<Type> ServerNetwork = new List<Type> { typeof(ServerNetworkHandlerAttribute) };
+
+        foreach (var m2 in m)
         {
-            var m = t.GetRuntimeMethods();
-            foreach (var m2 in m)
+            foreach(var e in EventStuff)
             {
-                var attr = m2.GetCustomAttribute<EventHandlerAttribute>();
+                var attr = (IEvent) Attribute.GetCustomAttribute(m2, e)!;
                 if (attr != null && m2.IsStatic)
                 {
-                    Console.WriteLine($"Found [EventHandler] in {t} method {m2.Name}");
-                    PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr.Id, DelegateHelper.CreateDelegate(m2, instance)));
+                    Console.WriteLine($"Found [{e}] in {t} method {m2.Name}");
+                    PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr.Id, DelegateHelper.CreateDelegate(m2, instance), modId));
                 }
-                var attr2 = m2.GetCustomAttribute<OnFrameAttribute>();
-                if (attr2 != null && m2.IsStatic)
+            }
+
+            foreach (var e in ClientNetwork)
+            {
+                var attr = (IEvent)Attribute.GetCustomAttribute(m2, e)!;
+                if (attr != null && m2.IsStatic)
                 {
-                    Console.WriteLine($"Found [OnFrame] in {t} method {m2.Name}");
-                    PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr2.Id, DelegateHelper.CreateDelegate(m2, instance)));
+                    Console.WriteLine($"Found [{e}] in {t} method {m2.Name}");
+                    InternalEventBus.bus.PushEvent(new EventSetupClientNetworkHandler(m2, (ClientNetworkHandlerAttribute)attr, modId));
                 }
-                var attr3 = m2.GetCustomAttribute<OnViUpdateAttribute>();
-                if (attr3 != null && m2.IsStatic)
+            }
+
+            foreach (var e in ServerNetwork)
+            {
+                var attr = (IEvent)Attribute.GetCustomAttribute(m2, e)!;
+                if (attr != null && m2.IsStatic)
                 {
-                    Console.WriteLine($"Found [OnViUpdate] in {t} method {m2.Name}");
-                    PubEventBus.bus.RegisterEventHandler(new EventRegistration(attr3.Id, DelegateHelper.CreateDelegate(m2, instance)));
+                    Console.WriteLine($"Found [{e}] in {t} method {m2.Name}");
+                    InternalEventBus.bus.PushEvent(new EventSetupServerNetworkHandler(m2, (ServerNetworkHandlerAttribute)attr, modId));
                 }
             }
         }
+    }
+    public static void RemoveModHandlers(string modId)
+    {
+        PubEventBus.bus.UnregisterAllByParentId(modId);
+        InternalEventBus.bus.PushEvent(new EventDisposeModNetworkHandlers(modId));
     }
 }

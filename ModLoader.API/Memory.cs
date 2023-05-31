@@ -142,6 +142,8 @@ public interface IMemory
     /// <param name="value"></param>
     public static abstract void WriteF64(u32 address, f64 value);
 
+    public static abstract void InvalidateCachedCode();
+
 }
 
 public static class Memory

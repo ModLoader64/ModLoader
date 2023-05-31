@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ModLoader.Core;
 
-namespace ModLoader.Core
+public class RandomLobbyName
 {
-    internal class RandomLobbyName
+    public static string GetRandomLobbyName()
     {
-        public static string GetRandomLobbyName()
+        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        var stringChars = new char[8];
+        var random = new Random();
+
+        for (int i = 0; i < stringChars.Length; i++)
         {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var stringChars = new char[8];
-            var random = new Random();
-
-            for (int i = 0; i < stringChars.Length; i++)
-            {
-                stringChars[i] = chars[random.Next(chars.Length)];
-            }
-
-            var finalString = new string(stringChars);
-
-            return finalString;
+            stringChars[i] = chars[random.Next(chars.Length)];
         }
+
+        var finalString = new string(stringChars);
+
+        return finalString;
     }
 }

@@ -49,7 +49,6 @@ public class BindingLoader
                             plugins.Remove(curFile);
                             plugins.Add(curFile, context);
                         }
-                        Console.WriteLine($"Constructing Binding: {curFile}");
                         context.Create();
                     }else if (Attribute.GetCustomAttribute(type, typeof(BoundMemoryAttribute)) != null)
                     {

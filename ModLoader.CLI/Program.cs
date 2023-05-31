@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace ModLoader.CLI;
 
@@ -19,7 +20,6 @@ class ModLoader_CLI
         CoreConfigurationHandler.SetupCoreConfiguration();
 
         Service.bindingLoader.ScanBindingsFolder();
-        Service.loader.LoadPlugins();
 
         if (CoreConfigurationHandler.config!.multiplayer.isServer)
         {
@@ -28,11 +28,27 @@ class ModLoader_CLI
         if (CoreConfigurationHandler.config.multiplayer.isClient)
         {
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
-            EventSystem.HookUpAttributedDelegates(typeof(ModLoader_CLI), null);
+            EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
         }
+        Service.loader.LoadPlugins();
+        Service.loader.InitPlugins();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
+    }
 
+    private static bool firstFrame = false;
+
+    [OnFrame]
+    private static void onFrame(EventNewFrame e) { 
+        if (!firstFrame)
+        {
+            foreach (var plugin in Service.loader.plugins)
+            {
+                Service.signatureManager.ScanPlugin(plugin.Value);
+            }
+            PubEventBus.bus.PushEvent(new EventEmulatorStart());
+            firstFrame = true;
+        }
     }
 }

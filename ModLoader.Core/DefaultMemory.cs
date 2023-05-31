@@ -1,7 +1,12 @@
 ﻿namespace ModLoader.Core;
 
-internal class DefaultMemory : IMemory
+public class DefaultMemory : IMemory
 {
+    public static void InvalidateCachedCode()
+    {
+        throw new NotImplementedException();
+    }
+
     public static float ReadF32(uint address)
     {
         throw new NotImplementedException();
