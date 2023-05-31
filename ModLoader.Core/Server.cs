@@ -25,7 +25,6 @@ public class Server : INetworkingSender
         {
             if (m.Name == "OnNetworkSetupEvent")
             {
-                Console.WriteLine("SERVER FUCKING FUCK");
                 InternalEventBus.bus.RegisterEventHandler(new EventRegistration("EventSetupServerNetworkHandler", DelegateHelper.CreateDelegate(m, this), ""));
             }
             else if (m.Name == "OnNetworkDisposeEvent")
