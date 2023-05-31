@@ -3,7 +3,6 @@ using Network.Converter;
 using Network.Enums;
 using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.Json;
 
 namespace ModLoader.Core;
 
@@ -12,8 +11,9 @@ public class Client : INetworkingSender
     public PluginLoader? pluginLoader;
     private ClientConnectionContainer? container;
     private Dictionary<string, EventSetupClientNetworkHandler> NetworkHandlerContainers = new Dictionary<string, EventSetupClientNetworkHandler>();
+    private JsonSerializerSettings jsonSettings =  new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
 
-    public void StartClient(PluginLoader? pluginLoader, string address, int port)
+public void StartClient(PluginLoader? pluginLoader, string address, int port)
     {
         foreach (MethodInfo m in GetType().GetRuntimeMethods())
         {
@@ -58,8 +58,7 @@ public class Client : INetworkingSender
     }
 
     private void OnPacketDecoded(EventDecodedPacket e){
-        var settings = new Newtonsoft.Json.JsonSerializerSettings { TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto };
-        var b1 = Newtonsoft.Json.JsonConvert.DeserializeObject(e.payload, settings)!;
+        var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
         var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupClientNetworkHandler? value))
         {

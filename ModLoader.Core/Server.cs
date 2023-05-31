@@ -1,7 +1,7 @@
 ﻿using Network;
 using Network.Enums;
+using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.Json;
 
 namespace ModLoader.Core;
 
@@ -14,6 +14,7 @@ public class Server : INetworkingSender
     public PluginLoader? pluginLoader;
     private Dictionary<string, EventSetupServerNetworkHandler> NetworkHandlerContainers = new Dictionary<string, EventSetupServerNetworkHandler>();
     public string[]? modSigs;
+    private JsonSerializerSettings jsonSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
 
     public static Dictionary<string, Lobby> lobbies = new Dictionary<string, Lobby>();
 
@@ -77,8 +78,7 @@ public class Server : INetworkingSender
 
     private void OnPacketDecoded(EventDecodedPacket e)
     {
-        var settings = new Newtonsoft.Json.JsonSerializerSettings { TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto };
-        var b1 = Newtonsoft.Json.JsonConvert.DeserializeObject(e.payload, settings)!;
+        var b1 = Newtonsoft.Json.JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
         var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupServerNetworkHandler? value))
         {
