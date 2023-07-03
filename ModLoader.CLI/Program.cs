@@ -41,7 +41,7 @@ class ModLoader_CLI
 
     [OnViUpdate]
     private static void OnViUpdate() {
-        Service.ImGuiManager.ProcessEvents();
+        Service.ImGuiManager.Step();
     }
 
     [OnFrame]

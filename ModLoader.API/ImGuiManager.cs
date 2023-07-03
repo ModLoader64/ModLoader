@@ -4,6 +4,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
+using System.Diagnostics;
 
 namespace ModLoader.API;
 
@@ -12,8 +13,35 @@ public class ImGuiManager : GameWindow {
 
     private ImGuiController? Controller = null;
 
-    public ImGuiManager() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(640, 480), APIVersion = new Version(3, 3)}) {
+    private Stopwatch WatchUpdate = new Stopwatch();
+    private Stopwatch WatchFrame = new Stopwatch();
+
+    public ImGuiManager() : base(
+        GameWindowSettings.Default,
+        new NativeWindowSettings() { Size = new Vector2i(640, 480), APIVersion = new Version(3, 3)})
+    {
         WindowBorder = WindowBorder.Hidden;
+        OnLoad();
+        OnResize(new ResizeEventArgs(ClientSize));
+    }
+
+    public void Step() {
+        var UpdateTime = 0.0;
+        var FrameTime = 0.0;
+
+        Context.MakeCurrent();
+        ProcessInputEvents();
+        ProcessWindowEvents(IsEventDriven);
+
+        UpdateTime = WatchUpdate.Elapsed.TotalSeconds;
+        WatchUpdate.Restart();
+        OnUpdateFrame(new FrameEventArgs(UpdateTime));
+
+        FrameTime = WatchFrame.Elapsed.TotalSeconds;
+        WatchFrame.Restart();
+        OnRenderFrame(new FrameEventArgs(FrameTime));
+
+        SwapBuffers();
     }
 
     protected override void OnLoad() {
@@ -45,8 +73,6 @@ public class ImGuiManager : GameWindow {
         if (Controller != null) {
             Controller.Render();
         }
-
-        SwapBuffers();
     }
 
     protected override void OnTextInput(TextInputEventArgs e) {
