@@ -30,7 +30,6 @@ class ModLoader_CLI
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
             EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
         }
-        Service.ImGuiManager.Run();
         Service.loader.LoadPlugins();
         Service.loader.InitPlugins();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
@@ -39,6 +38,11 @@ class ModLoader_CLI
     }
 
     private static bool firstFrame = false;
+
+    [OnViUpdate]
+    private static void OnViUpdate() {
+        Service.ImGuiManager.ProcessEvents();
+    }
 
     [OnFrame]
     private static void onFrame(EventNewFrame e) { 
