@@ -12,7 +12,7 @@ public class ImGuiManager : GameWindow {
 
     private ImGuiController? Controller = null;
 
-    public ImGuiManager() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1, 1), APIVersion = new Version(3, 3)}) {
+    public ImGuiManager() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(640, 480), APIVersion = new Version(3, 3)}) {
         WindowBorder = WindowBorder.Hidden;
     }
 
@@ -47,7 +47,6 @@ public class ImGuiManager : GameWindow {
         }
 
         SwapBuffers();
-
     }
 
     protected override void OnTextInput(TextInputEventArgs e) {

@@ -30,6 +30,7 @@ class ModLoader_CLI
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
             EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
         }
+        Service.ImGuiManager.Run();
         Service.loader.LoadPlugins();
         Service.loader.InitPlugins();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
