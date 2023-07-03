@@ -2,10 +2,8 @@
 using OpenTK;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Mathematics;
-using System.Runtime.InteropServices;
 using OpenTK.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
-using System.Drawing;
 
 namespace ModLoader.API;
 
