@@ -49,31 +49,31 @@ namespace ModLoader.API {
     public delegate void WriteF32_Delegate(uint address, float value);
     
     public delegate void WriteF64_Delegate(uint address, double value);
-    
+
     public delegate void InvalidateCachedCode_Delegate();
-    
+
     public interface IMemoryDelegates {
         
-        public ReadU8_Delegate ReadU8 {get; set;}
-        public ReadU16_Delegate ReadU16 {get; set;}
-        public ReadU32_Delegate ReadU32 {get; set;}
-        public ReadU64_Delegate ReadU64 {get; set;}
-        public ReadS8_Delegate ReadS8 {get; set;}
-        public ReadS16_Delegate ReadS16 {get; set;}
-        public ReadS32_Delegate ReadS32 {get; set;}
-        public ReadS64_Delegate ReadS64 {get; set;}
-        public ReadF32_Delegate ReadF32 {get; set;}
-        public ReadF64_Delegate ReadF64 {get; set;}
-        public WriteU8_Delegate WriteU8 {get; set;}
-        public WriteU16_Delegate WriteU16 {get; set;}
-        public WriteU32_Delegate WriteU32 {get; set;}
-        public WriteU64_Delegate WriteU64 {get; set;}
-        public WriteS8_Delegate WriteS8 {get; set;}
-        public WriteS16_Delegate WriteS16 {get; set;}
-        public WriteS32_Delegate WriteS32 {get; set;}
-        public WriteS64_Delegate WriteS64 {get; set;}
-        public WriteF32_Delegate WriteF32 {get; set;}
-        public WriteF64_Delegate WriteF64 {get; set;}
-        public InvalidateCachedCode_Delegate InvalidateCachedCode {get; set;}
+        public ReadU8_Delegate ReadU8 { get; set; }
+        public ReadU16_Delegate ReadU16 { get; set; }
+        public ReadU32_Delegate ReadU32 { get; set; }
+        public ReadU64_Delegate ReadU64 { get; set; }
+        public ReadS8_Delegate ReadS8 { get; set; }
+        public ReadS16_Delegate ReadS16 { get; set; }
+        public ReadS32_Delegate ReadS32 { get; set; }
+        public ReadS64_Delegate ReadS64 { get; set; }
+        public ReadF32_Delegate ReadF32 { get; set; }
+        public ReadF64_Delegate ReadF64 { get; set; }
+        public WriteU8_Delegate WriteU8 { get; set; }
+        public WriteU16_Delegate WriteU16 { get; set; }
+        public WriteU32_Delegate WriteU32 { get; set; }
+        public WriteU64_Delegate WriteU64 { get; set; }
+        public WriteS8_Delegate WriteS8 { get; set; }
+        public WriteS16_Delegate WriteS16 { get; set; }
+        public WriteS32_Delegate WriteS32 { get; set; }
+        public WriteS64_Delegate WriteS64 { get; set; }
+        public WriteF32_Delegate WriteF32 { get; set; }
+        public WriteF64_Delegate WriteF64 { get; set; }
+        public InvalidateCachedCode_Delegate InvalidateCachedCode { get; set; }
     }
 }
