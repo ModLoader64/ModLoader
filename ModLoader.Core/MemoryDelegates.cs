@@ -55,26 +55,26 @@ namespace ModLoader.Core {
         public InvalidateCachedCode_Delegate InvalidateCachedCode { get; set; }//;
         
         public MemoryDelegates(System.Type binding) {
-            ReadU8 = DelegateHelper.Cast<ReadU8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU8", new Type[] {typeof(System.UInt32),})!, null));
-            ReadU16 = DelegateHelper.Cast<ReadU16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU16", new Type[] {typeof(System.UInt32),})!, null));
-            ReadU32 = DelegateHelper.Cast<ReadU32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU32", new Type[] {typeof(System.UInt32),})!, null));
-            ReadU64 = DelegateHelper.Cast<ReadU64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU64", new Type[] {typeof(System.UInt32),})!, null));
-            ReadS8 = DelegateHelper.Cast<ReadS8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS8", new Type[] {typeof(System.UInt32),})!, null));
-            ReadS16 = DelegateHelper.Cast<ReadS16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS16", new Type[] {typeof(System.UInt32),})!, null));
-            ReadS32 = DelegateHelper.Cast<ReadS32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS32", new Type[] {typeof(System.UInt32),})!, null));
-            ReadS64 = DelegateHelper.Cast<ReadS64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS64", new Type[] {typeof(System.UInt32),})!, null));
-            ReadF32 = DelegateHelper.Cast<ReadF32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadF32", new Type[] {typeof(System.UInt32),})!, null));
-            ReadF64 = DelegateHelper.Cast<ReadF64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadF64", new Type[] {typeof(System.UInt32),})!, null));
-            WriteU8 = DelegateHelper.Cast<WriteU8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU8", new Type[] {typeof(System.UInt32),typeof(System.Byte),})!, null));
-            WriteU16 = DelegateHelper.Cast<WriteU16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU16", new Type[] {typeof(System.UInt32),typeof(System.UInt16),})!, null));
-            WriteU32 = DelegateHelper.Cast<WriteU32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU32", new Type[] {typeof(System.UInt32),typeof(System.UInt32),})!, null));
-            WriteU64 = DelegateHelper.Cast<WriteU64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU64", new Type[] {typeof(System.UInt32),typeof(System.UInt64),})!, null));
-            WriteS8 = DelegateHelper.Cast<WriteS8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS8", new Type[] {typeof(System.UInt32),typeof(System.SByte),})!, null));
-            WriteS16 = DelegateHelper.Cast<WriteS16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS16", new Type[] {typeof(System.UInt32),typeof(System.Int16),})!, null));
-            WriteS32 = DelegateHelper.Cast<WriteS32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS32", new Type[] {typeof(System.UInt32),typeof(System.Int32),})!, null));
-            WriteS64 = DelegateHelper.Cast<WriteS64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS64", new Type[] {typeof(System.UInt32),typeof(System.Int64),})!, null));
-            WriteF32 = DelegateHelper.Cast<WriteF32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF32", new Type[] {typeof(System.UInt32),typeof(System.Single),})!, null));
-            WriteF64 = DelegateHelper.Cast<WriteF64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF64", new Type[] {typeof(System.UInt32),typeof(System.Double),})!, null));
+            ReadU8 = DelegateHelper.Cast<ReadU8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU8", new Type[] {typeof(System.UInt64),})!, null));
+            ReadU16 = DelegateHelper.Cast<ReadU16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU16", new Type[] {typeof(System.UInt64),})!, null));
+            ReadU32 = DelegateHelper.Cast<ReadU32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU32", new Type[] {typeof(System.UInt64),})!, null));
+            ReadU64 = DelegateHelper.Cast<ReadU64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadU64", new Type[] {typeof(System.UInt64),})!, null));
+            ReadS8 = DelegateHelper.Cast<ReadS8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS8", new Type[] {typeof(System.UInt64),})!, null));
+            ReadS16 = DelegateHelper.Cast<ReadS16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS16", new Type[] {typeof(System.UInt64),})!, null));
+            ReadS32 = DelegateHelper.Cast<ReadS32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS32", new Type[] {typeof(System.UInt64),})!, null));
+            ReadS64 = DelegateHelper.Cast<ReadS64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadS64", new Type[] {typeof(System.UInt64),})!, null));
+            ReadF32 = DelegateHelper.Cast<ReadF32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadF32", new Type[] {typeof(System.UInt64),})!, null));
+            ReadF64 = DelegateHelper.Cast<ReadF64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("ReadF64", new Type[] {typeof(System.UInt64),})!, null));
+            WriteU8 = DelegateHelper.Cast<WriteU8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU8", new Type[] {typeof(System.UInt64),typeof(System.Byte),})!, null));
+            WriteU16 = DelegateHelper.Cast<WriteU16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU16", new Type[] {typeof(System.UInt64),typeof(System.UInt16),})!, null));
+            WriteU32 = DelegateHelper.Cast<WriteU32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU32", new Type[] {typeof(System.UInt64),typeof(System.UInt32),})!, null));
+            WriteU64 = DelegateHelper.Cast<WriteU64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteU64", new Type[] {typeof(System.UInt64),typeof(System.UInt64),})!, null));
+            WriteS8 = DelegateHelper.Cast<WriteS8_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS8", new Type[] {typeof(System.UInt64),typeof(System.SByte),})!, null));
+            WriteS16 = DelegateHelper.Cast<WriteS16_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS16", new Type[] {typeof(System.UInt64),typeof(System.Int16),})!, null));
+            WriteS32 = DelegateHelper.Cast<WriteS32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS32", new Type[] {typeof(System.UInt64),typeof(System.Int32),})!, null));
+            WriteS64 = DelegateHelper.Cast<WriteS64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteS64", new Type[] {typeof(System.UInt64),typeof(System.Int64),})!, null));
+            WriteF32 = DelegateHelper.Cast<WriteF32_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF32", new Type[] {typeof(System.UInt64),typeof(System.Single),})!, null));
+            WriteF64 = DelegateHelper.Cast<WriteF64_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("WriteF64", new Type[] {typeof(System.UInt64),typeof(System.Double),})!, null));
             InvalidateCachedCode = DelegateHelper.Cast<InvalidateCachedCode_Delegate>(DelegateHelper.CreateDelegate(binding.GetMethod("InvalidateCachedCode", new Type[] {})!, null));
         }
     }

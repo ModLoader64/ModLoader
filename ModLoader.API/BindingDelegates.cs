@@ -28,13 +28,13 @@ namespace ModLoader.API {
     
     public interface IBindingDelegates {
         
-        public InitBinding_Delegate InitBinding { get; set; }
-        public StartBinding_Delegate StartBinding { get; set; }
-        public StopBinding_Delegate StopBinding { get; set; }
-        public SetGameFile_Delegate SetGameFile { get; set; }
-        public ChangeGameFile_Delegate ChangeGameFile { get; set; }
-        public TogglePause_Delegate TogglePause { get; set; }
-        public SaveState_Delegate SaveState { get; set; }
-        public LoadState_Delegate LoadState { get; set; }
+        public InitBinding_Delegate InitBinding {get; set;}
+        public StartBinding_Delegate StartBinding {get; set;}
+        public StopBinding_Delegate StopBinding {get; set;}
+        public SetGameFile_Delegate SetGameFile {get; set;}
+        public ChangeGameFile_Delegate ChangeGameFile {get; set;}
+        public TogglePause_Delegate TogglePause {get; set;}
+        public SaveState_Delegate SaveState {get; set;}
+        public LoadState_Delegate LoadState {get; set;}
     }
 }
