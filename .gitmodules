@@ -1,6 +1,0 @@
-[submodule "cimgui"]
-	path = cimgui
-	url = https://github.com/ModLoader64/cimgui.git
-[submodule "ImGui.NET"]
-	path = ImGui.NET
-	url = https://github.com/ModLoader64/ImGui.NET.git

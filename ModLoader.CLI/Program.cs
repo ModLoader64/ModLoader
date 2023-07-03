@@ -38,18 +38,6 @@ class ModLoader_CLI
     }
 
     private static bool firstFrame = false;
-    private static bool firstVI = true;
-
-    [OnViUpdate]
-    private static void OnViUpdate(EventNewVi e) {
-        if (firstVI) {
-            ImGuiManager.Initialize();
-            firstVI = false;
-        }
-        ImGuiManager.NewFrame();
-        // do imgui shit?
-        ImGuiManager.EndFrame();
-    }
 
     [OnFrame]
     private static void onFrame(EventNewFrame e) { 

@@ -20,8 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.89.6" />
     <PackageReference Include="Network" Version="6.2.5.23" />
-	<ProjectReference Include="..\ImGui.NET\src\ImGui.NET\ImGui.NET.csproj" />
+    <PackageReference Include="OpenTK" Version="4.7.7" />
 	<Using Include="System.Byte" Alias="u8" />
 	<Using Include="System.UInt16" Alias="u16" />
 	<Using Include="System.UInt32" Alias="u32" />
@@ -35,23 +36,5 @@
 	<Using Include="System.Double" Alias="f64" />
 	<Using Include="System.IntPtr" Alias="Ptr" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo compiling cimgui..." />
-    <Exec Command="make -C ../cimgui" />
-
-    <!-- For Windows x86 -->
-    <Exec Condition="'$(Platform)'=='x86' And '$(OS)' == 'Windows_NT'" Command="copy -Y ../cimgui/cimgui.dll ../ImGui.NET/deps/cimgui/win-x86/cimgui.dll" />
-
-    <!-- For Windows x64 -->
-    <Exec Condition="'$(Platform)'=='x64' And '$(OS)' == 'Windows_NT'" Command="copy -Y ../cimgui/cimgui.dll ../ImGui.NET/deps/cimgui/win-x64/cimgui.dll" />
-
-    <!-- For Linux x64 -->
-    <Exec Condition="'$(RuntimeIdentifier)'=='linux-x64'" Command="cp -f ../cimgui/cimgui.so ../ImGui.NET/deps/cimgui/linux-x64/cimgui.so" />
-
-    <!-- For OSX -->
-    <Exec Condition="'$(RuntimeIdentifier)'=='osx-x64'" Command="cp -f ../cimgui/cimgui.dylib ../ImGui.NET/deps/cimgui/osx/cimgui.dylib" />
-
-  </Target>
 
 </Project>
