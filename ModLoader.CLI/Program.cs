@@ -41,7 +41,7 @@ class ModLoader_CLI
     private static bool firstVI = true;
 
     [OnViUpdate]
-    private static void OnViUpdate() {
+    private static void OnViUpdate(EventNewVi e) {
         if (firstVI) {
             ImGuiManager.Initialize();
             firstVI = false;
