@@ -10,7 +10,7 @@ namespace ModLoader.API;
 public class ImGuiManager : GameWindow {
     private readonly Color4 ClearColor = new Color4(0, 0, 0, 0);
 
-    private ImGuiController Controller;
+    private ImGuiController? Controller = null;
 
     public ImGuiManager() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1, 1), APIVersion = new Version(3, 3)}) {
         WindowBorder = WindowBorder.Hidden;
@@ -25,20 +25,26 @@ public class ImGuiManager : GameWindow {
     protected override void OnResize(ResizeEventArgs e) {
         base.OnResize(e);
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-        Controller.WindowResized(ClientSize.X, ClientSize.Y);
+        if (Controller != null) {
+            Controller.WindowResized(ClientSize.X, ClientSize.Y);
+        }
     }
 
     protected override void OnRenderFrame(FrameEventArgs args) {
         base.OnRenderFrame(args);
 
-        Controller.Update(this, (float)args.Time);
+        if (Controller != null) {
+            Controller.Update(this, (float)args.Time);
+        }
 
         GL.ClearColor(ClearColor);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
         ImGui.ShowDemoWindow();
 
-        Controller.Render();
+        if (Controller != null) {
+            Controller.Render();
+        }
 
         SwapBuffers();
 
@@ -46,12 +52,16 @@ public class ImGuiManager : GameWindow {
 
     protected override void OnTextInput(TextInputEventArgs e) {
         base.OnTextInput(e);
-        Controller.PressChar((char)e.Unicode);
+        if (Controller != null) {
+            Controller.PressChar((char)e.Unicode);
+        }
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e) {
         base.OnMouseWheel(e);
-        Controller.MouseScroll(e.Offset);
+        if (Controller != null) {
+            Controller.MouseScroll(e.Offset);
+        }
     }
 }
 
