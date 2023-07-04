@@ -13,7 +13,6 @@ public class ImGuiManager : GameWindow {
 
     private ImGuiController? Controller = null;
 
-    private Stopwatch WatchUpdate = new Stopwatch();
     private Stopwatch WatchFrame = new Stopwatch();
 
     public ImGuiManager() : base(
@@ -32,10 +31,6 @@ public class ImGuiManager : GameWindow {
         Context.MakeCurrent();
         ProcessInputEvents();
         ProcessWindowEvents(IsEventDriven);
-
-        UpdateTime = WatchUpdate.Elapsed.TotalSeconds;
-        WatchUpdate.Restart();
-        OnUpdateFrame(new FrameEventArgs(UpdateTime));
 
         FrameTime = WatchFrame.Elapsed.TotalSeconds;
         WatchFrame.Restart();
