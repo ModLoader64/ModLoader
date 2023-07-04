@@ -25,7 +25,6 @@ public class ImGuiManager : GameWindow {
     }
 
     public void Step() {
-        var UpdateTime = 0.0;
         var FrameTime = 0.0;
 
         Context.MakeCurrent();
@@ -34,7 +33,19 @@ public class ImGuiManager : GameWindow {
 
         FrameTime = WatchFrame.Elapsed.TotalSeconds;
         WatchFrame.Restart();
-        OnRenderFrame(new FrameEventArgs(FrameTime));
+
+        if (Controller != null) {
+            Controller.Update(this, (float)FrameTime);
+        }
+
+        GL.ClearColor(ClearColor);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+        ImGui.ShowDemoWindow();
+
+        if (Controller != null) {
+            Controller.Render();
+        }
 
         SwapBuffers();
     }
@@ -50,23 +61,6 @@ public class ImGuiManager : GameWindow {
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
         if (Controller != null) {
             Controller.WindowResized(ClientSize.X, ClientSize.Y);
-        }
-    }
-
-    protected override void OnRenderFrame(FrameEventArgs args) {
-        base.OnRenderFrame(args);
-
-        if (Controller != null) {
-            Controller.Update(this, (float)args.Time);
-        }
-
-        GL.ClearColor(ClearColor);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-        ImGui.ShowDemoWindow();
-
-        if (Controller != null) {
-            Controller.Render();
         }
     }
 
