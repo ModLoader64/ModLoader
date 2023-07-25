@@ -3,14 +3,12 @@
 public class BindingContext
 {
 
-    CustomAssemblyContext context;
     Type type;
     string parentDir;
     public IBindingDelegates? plugin;
 
-    public BindingContext(CustomAssemblyContext context, Type type, string parentDir)
+    public BindingContext(Type type, string parentDir)
     {
-        this.context = context;
         this.type = type;
         this.parentDir = parentDir;
     }

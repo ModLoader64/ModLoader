@@ -5,6 +5,7 @@ public class Plugin : IPlugin
 {
 
     public static Configuration? Configuration { get; set; }
+    public static bool isOpen = true;
 
     public static void Init()
     {
@@ -30,6 +31,11 @@ public class Plugin : IPlugin
     [OnViUpdate]
     public static void OnViUpdate(EventNewVi e)
     {
+        if (isOpen && ImGui.Begin("This is from a mod", ref isOpen, ImGuiNET.ImGuiWindowFlags.None))
+        {
+            ImGui.Text("Finally jesus christ this took like a week.");
+            ImGui.End();
+        }
     }
 
 }

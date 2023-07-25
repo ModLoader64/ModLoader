@@ -7,22 +7,21 @@
     <Nullable>enable</Nullable>
 	<Deterministic>false</Deterministic>
 	<AssemblyVersion>0.0.*</AssemblyVersion>
-	<Platforms>AnyCPU;x64</Platforms>
+	<Platforms>AnyCPU</Platforms>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	<SignAssembly>False</SignAssembly>
 	<Title>ModLoader API</Title>
 	<Authors>denoflions, Drahsid</Authors>
 	<Company>ModLoader64</Company>
 	<IncludeSymbols>True</IncludeSymbols>
-	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.89.6" />
     <PackageReference Include="Network" Version="6.2.5.23" />
-    <PackageReference Include="OpenTK" Version="4.7.7" />
+    <Reference Include="ImGui.NET.API">
+      <HintPath>..\..\ImGui.NET\bin\Release\ImGui.NET\net6.0\ImGui.NET.API.dll</HintPath>
+    </Reference>
 	<Using Include="System.Byte" Alias="u8" />
 	<Using Include="System.UInt16" Alias="u16" />
 	<Using Include="System.UInt32" Alias="u32" />

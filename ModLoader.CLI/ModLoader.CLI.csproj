@@ -9,12 +9,15 @@
     <StartupObject>ModLoader.CLI.ModLoader_CLI</StartupObject>
 	<Deterministic>false</Deterministic>
 	<AssemblyVersion>0.0.*</AssemblyVersion>
-	<Platforms>AnyCPU;x64</Platforms>
+	<Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ModLoader.API\ModLoader.API.csproj" />
     <ProjectReference Include="..\ModLoader.Core\ModLoader.Core.csproj" />
+    <Reference Include="ImGui.NET.API">
+      <HintPath>..\..\ImGui.NET\bin\Release\ImGui.NET\net6.0\ImGui.NET.API.dll</HintPath>
+    </Reference>
 	<Using Include="System.Byte" Alias="u8" />
 	<Using Include="System.UInt16" Alias="u16" />
 	<Using Include="System.UInt32" Alias="u32" />
@@ -27,8 +30,8 @@
 	<Using Include="System.Single" Alias="f32" />
 	<Using Include="System.Double" Alias="f64" />
 	<Using Include="System.IntPtr" Alias="Ptr" />
-	<Using Include="ModLoader.Core"/>
-	<Using Include="ModLoader.API"/>
+	<Using Include="ModLoader.Core" />
+	<Using Include="ModLoader.API" />
   </ItemGroup>
 
 </Project>

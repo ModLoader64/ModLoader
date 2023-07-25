@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace ModLoader.CLI;
 
@@ -11,6 +10,8 @@ class ModLoader_CLI
     /// <param name="args"></param>
     static void Main(string[] args)
     {
+        AppContext.SetData("NATIVE_DLL_SEARCH_DIRECTORIES", $"{(AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES"))}{(Path.GetFullPath("./bindings/mupen"))};");
+        Console.WriteLine(AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES"));
         Console.WriteLine("ModLoader");
         Version version = Assembly.GetExecutingAssembly()!.GetName()!.Version!;
         string displayableVersion = $"{version}";
@@ -40,8 +41,7 @@ class ModLoader_CLI
     private static bool firstFrame = false;
 
     [OnViUpdate]
-    private static void OnViUpdate() {
-        Service.ImGuiManager.Step();
+    private static void OnViUpdate(EventNewVi e) {
     }
 
     [OnFrame]
