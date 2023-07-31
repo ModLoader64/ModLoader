@@ -4,7 +4,7 @@
 public class OnFrameAttribute : Attribute, IEvent
 {
 
-    public string Id { get; set; } = "OnFrame";
+    public string Id { get; set; } = "EventNewFrame";
 
     public OnFrameAttribute() { }
 }
@@ -12,7 +12,7 @@ public class OnFrameAttribute : Attribute, IEvent
 [AttributeUsage(AttributeTargets.Method)]
 public class OnViUpdateAttribute : Attribute, IEvent
 {
-    public string Id { get; set; } = "OnViUpdate";
+    public string Id { get; set; } = "EventNewVi";
 
     public OnViUpdateAttribute() { }
 }

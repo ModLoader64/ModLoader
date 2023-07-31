@@ -4,14 +4,15 @@ namespace ModLoader.CLI;
 
 class ModLoader_CLI
 {
+
+    private static string RomHash = "";
+
     /// <summary>
     /// Entry point.
     /// </summary>
     /// <param name="args"></param>
     static void Main(string[] args)
     {
-        AppContext.SetData("NATIVE_DLL_SEARCH_DIRECTORIES", $"{(AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES"))}{(Path.GetFullPath("./bindings/mupen"))};");
-        Console.WriteLine(AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES"));
         Console.WriteLine("ModLoader");
         Version version = Assembly.GetExecutingAssembly()!.GetName()!.Version!;
         string displayableVersion = $"{version}";
@@ -33,6 +34,9 @@ class ModLoader_CLI
         }
         Service.loader.LoadPlugins();
         Service.loader.InitPlugins();
+        var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
+        RomHash = Utils.GetHashSHA1(rom);
+        PubEventBus.bus.PushEvent(new EventRomLoaded(rom));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
@@ -50,7 +54,7 @@ class ModLoader_CLI
         {
             foreach (var plugin in Service.loader.plugins)
             {
-                Service.signatureManager.ScanPlugin(plugin.Value);
+                Service.signatureManager.ScanPlugin(plugin.Value, RomHash);
             }
             PubEventBus.bus.PushEvent(new EventEmulatorStart());
             firstFrame = true;

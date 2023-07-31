@@ -150,9 +150,15 @@ public static class Memory
 {
     // Is there another way to avoid this rule warning without having to pass instances of this shit around?
     public static IMemoryDelegates RAM;
+    public static IMemoryDelegates ROM;
 }
 
 [AttributeUsage(AttributeTargets.Class)]
 public class BoundMemoryAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class BoundROMAttribute : Attribute
 {
 }

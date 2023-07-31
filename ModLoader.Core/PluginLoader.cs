@@ -1,7 +1,4 @@
-﻿using System.Formats.Tar;
-using System.IO;
-using System.IO.Compression;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
@@ -36,9 +33,17 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void LoadPluginFromStream(Stream s, CustomAssemblyContext c, string name)
+    public void LoadPluginFromStream(Stream s, CustomAssemblyContext? c, string name)
     {
-        var data = c.LoadFromStream(s);
+        Assembly data;
+        if (c != null)
+        {
+            data = c.LoadFromStream(s);
+        }
+        else
+        {
+            data = Assembly.Load(new BinaryReader(s).ReadBytes((int)s.Length));
+        }
         if (data != null)
         {
             Type[] types = data.GetTypes();
@@ -92,7 +97,7 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void LoadPlugin(string file, CustomAssemblyContext c)
+    public void LoadPlugin(string file, CustomAssemblyContext? c)
     {
         var curFile = Path.GetFullPath(file);
         if (Path.GetExtension(curFile) == ".dll")
@@ -101,56 +106,46 @@ public class PluginLoader
             var s = new FileStream(curFile, FileMode.Open);
             LoadPluginFromStream(s, c, curFile);
             s.Close();
-        }else if (Path.GetExtension(curFile) == ".nupkg"){
-            using (ZipArchive zip = ZipFile.Open(curFile, ZipArchiveMode.Read)) {
-                foreach (ZipArchiveEntry entry in zip.Entries) {
-                    if (entry.Name.Contains(".dll")) {
-                        var s = entry.Open();
-                        using (var ms = new MemoryStream())
-                        {
-                            s.CopyTo(ms);
-                            ms.Position = 0;
-                            LoadPluginFromStream(ms, c, file);
-                        }
-                        s.Close();
-                    }
-                }
-            }
         }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void LoadPlugins()
     {
-        string pluginDir = "./mods";
-        if (!Directory.Exists(pluginDir))
+        List<string> dlldirs = new List<string> { "./libs", "./mods" };
+        int mode = 0;
+        foreach (var dir in dlldirs)
         {
-            Console.WriteLine("Created plugin directory");
-            Directory.CreateDirectory(pluginDir);
-        }
-        var folders = Directory.GetDirectories(pluginDir);
-        var files = Directory.GetFiles(pluginDir);
-        if (folders.Length == 0 && files.Length == 0)
-        {
-            Console.WriteLine("No plugins found.");
-            return;
-        }
-        Console.WriteLine("Starting plugin scan...");
-        foreach (var folder in folders) {
-            var _files = Directory.GetFiles(folder);
-            if (_files.Length == 0) continue;
-            Console.WriteLine($"Creating context for {Path.GetFullPath(folder)}");
-            var c = new CustomAssemblyContext();
-            foreach ( var file in _files )
+            string pluginDir = dir;
+            if (!Directory.Exists(pluginDir))
             {
-                LoadPlugin(file, c);
+                Console.WriteLine("Created plugin directory");
+                Directory.CreateDirectory(pluginDir);
             }
-        }
-        foreach(var file in files)
-        {
-            Console.WriteLine($"Creating context for {Path.GetFullPath(file)}");
-            var c = new CustomAssemblyContext();
-            LoadPlugin(file, c);
+            var folders = Directory.GetDirectories(pluginDir);
+            var files = Directory.GetFiles(pluginDir);
+            if (folders.Length == 0 && files.Length == 0)
+            {
+                Console.WriteLine("No plugins found.");
+                return;
+            }
+            Console.WriteLine("Starting plugin scan...");
+            foreach (var folder in folders)
+            {
+                var _files = Directory.GetFiles(folder);
+                if (_files.Length == 0) continue;
+                CustomAssemblyContext? c = null;
+                if (mode > 0)
+                {
+                    Console.WriteLine($"Creating context for {Path.GetFullPath(folder)}");
+                    c = new CustomAssemblyContext();
+                }
+                foreach (var file in _files)
+                {
+                    LoadPlugin(file, c);
+                }
+            }
+            mode++;
         }
     }
 

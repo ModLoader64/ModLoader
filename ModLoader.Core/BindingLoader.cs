@@ -10,7 +10,8 @@ public class BindingLoader
 
     public BindingLoader()
     {
-        Memory.RAM = (IMemoryDelegates)new MemoryDelegates(typeof(DefaultMemory));
+        Memory.RAM = new MemoryDelegates(typeof(DefaultMemory));
+        Memory.ROM = new MemoryDelegates(typeof(DefaultMemory));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -51,6 +52,10 @@ public class BindingLoader
                     {
                         Console.WriteLine($"Found [BoundMemory] on {type}");
                         Memory.RAM = new MemoryDelegates(type);
+                    }else if (Attribute.GetCustomAttribute(type, typeof(BoundROMAttribute)) != null)
+                    {
+                        Console.WriteLine($"Found [BoundROM] on {type}");
+                        Memory.ROM = new MemoryDelegates(type);
                     }
                 }
             }
