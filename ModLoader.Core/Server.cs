@@ -1,5 +1,7 @@
 ﻿using Network;
+using Network.Converter;
 using Network.Enums;
+using Network.Packets;
 using Newtonsoft.Json;
 using System.Reflection;
 
@@ -77,7 +79,7 @@ public class Server : INetworkingSender
 
     private void OnPacketDecoded(EventDecodedPacket e)
     {
-        var b1 = Newtonsoft.Json.JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
+        var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
         var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupServerNetworkHandler? value))
         {
@@ -192,7 +194,11 @@ public class Server : INetworkingSender
         {
             if (player != null)
             {
-                
+                var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
+                var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
+                var raw = RawDataConverter.FromASCIIString("ModData", str);
+                Console.WriteLine($"[SERVER]: {packet} {str}");
+                player.connection.SendRawData(raw);
             }
         }
     }
