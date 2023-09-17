@@ -159,6 +159,12 @@ public class Server : INetworkingSender
             lobby.players.Add(new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname));
             lobbies.Add(lobby.name, lobby);
         }
+        else
+        {
+            lobbies.TryGetValue(packet.lobby, out var lobby);
+            if (lobby == null) return;
+            lobby.players.Add(new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname));
+        }
 
         connection.Send(new PacketServerLobbyJoinedResp(packet.lobby, lobbies[packet.lobby].patch, true));
         var evt = new EventServerNetworkLobbyJoined(packet.lobby, packet.patch);
