@@ -127,7 +127,7 @@ public class PluginLoader
             if (folders.Length == 0 && files.Length == 0)
             {
                 Console.WriteLine("No plugins found.");
-                return;
+                break;
             }
             Console.WriteLine("Starting plugin scan...");
             foreach (var folder in folders)
