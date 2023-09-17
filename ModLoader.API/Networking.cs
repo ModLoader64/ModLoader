@@ -162,3 +162,8 @@ public static class NetworkSenders
     public static INetworkingSender Client;
     public static INetworkingSender Server;
 }
+
+public static class NetworkClientData
+{
+    public static string lobby;
+}

@@ -92,6 +92,7 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
         NetworkSenders.Client = this;
         var evt = new EventClientNetworkLobbyJoined(packet.lobby, packet.patch);
         PubEventBus.bus.PushEvent(evt);
+        NetworkClientData.lobby = packet.lobby;
     }
 
     private void OnServerRequestJoinData(PacketServerRequestJoinData packet, Connection connection)
