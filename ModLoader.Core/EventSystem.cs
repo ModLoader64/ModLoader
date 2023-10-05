@@ -8,7 +8,7 @@ public class EventSystem
     {
         var m = t.GetRuntimeMethods();
 
-        List<Type> EventStuff = new List<Type> { typeof(EventHandlerAttribute), typeof(OnFrameAttribute), typeof(OnViUpdateAttribute), typeof(OnEmulatorStartAttribute) };
+        List<Type> EventStuff = new List<Type> { typeof(EventHandlerAttribute), typeof(OnFrameAttribute), typeof(OnViUpdateAttribute), typeof(OnEmulatorStartAttribute), typeof(OnInitAttribute)};
         List<Type> ClientNetwork = new List<Type> { typeof(ClientNetworkHandlerAttribute) };
         List<Type> ServerNetwork = new List<Type> { typeof(ServerNetworkHandlerAttribute) };
 

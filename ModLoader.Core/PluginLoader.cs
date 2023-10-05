@@ -30,6 +30,7 @@ public class PluginLoader
         {
             plugin.Value.Init();
         }
+        PubEventBus.bus.PushEvent(new EventPluginsLoaded());
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -49,9 +50,6 @@ public class PluginLoader
             Type[] types = data.GetTypes();
             foreach (var type in types)
             {
-                foreach(var a in type.GetCustomAttributes())
-                {
-                }
                 if (Attribute.GetCustomAttribute(type, typeof(PluginAttribute)) != null)
                 {
                     Console.WriteLine(data.ToString());

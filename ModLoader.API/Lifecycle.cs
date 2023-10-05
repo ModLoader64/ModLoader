@@ -24,3 +24,22 @@ public class OnEmulatorStartAttribute : Attribute, IEvent
 
     public OnEmulatorStartAttribute() { }
 }
+
+[AttributeUsage(AttributeTargets.Method)]
+public class OnInitAttribute : Attribute, IEvent
+{
+    public string Id { get; set; } = "OnPluginInit";
+
+    public OnInitAttribute() { }
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class BootstrapFilterAttribute: Attribute
+{
+    public BootstrapFilterAttribute() {}
+}
+
+public interface IBootstrapFilter
+{
+    public static abstract bool DoesLoad();
+}

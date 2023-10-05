@@ -196,14 +196,14 @@ public class Server : INetworkingSender
         Lobby lobby;
         lobbies.TryGetValue(lobbytarget, out lobby);
         if (lobby == null) return;
-        foreach(var player in lobby.players)
+        var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
+        var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
+        var raw = RawDataConverter.FromASCIIString("ModData", str);
+        Console.WriteLine($"[SERVER]: {packet} {str}");
+        foreach (var player in lobby.players)
         {
             if (player != null)
             {
-                var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
-                var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
-                var raw = RawDataConverter.FromASCIIString("ModData", str);
-                Console.WriteLine($"[SERVER]: {packet} {str}");
                 player.connection.SendRawData(raw);
             }
         }

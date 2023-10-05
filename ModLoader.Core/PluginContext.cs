@@ -30,7 +30,16 @@ public class PluginContext
     {
         foreach (Type type in ass.GetTypes())
         {
-            EventSystem.HookUpAttributedDelegates(attribute.Name, type, null);
+            if (Attribute.GetCustomAttribute(type, typeof(BootstrapFilterAttribute)) != null)
+            {
+                if (((bool)type.GetMethod("DoesLoad").Invoke(null, Array.Empty<object>()))) {
+                    EventSystem.HookUpAttributedDelegates(attribute.Name, type, null);
+                }
+            }
+            else
+            {
+                EventSystem.HookUpAttributedDelegates(attribute.Name, type, null);
+            }
         }
     }
 

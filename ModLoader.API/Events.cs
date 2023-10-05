@@ -27,6 +27,13 @@ public class EventEmulatorStart : IEvent
     public EventEmulatorStart() { }
 }
 
+public class EventPluginsLoaded : IEvent
+{
+    public string Id { get; set; } = "OnPluginInit";
+
+    public EventPluginsLoaded() { }
+}
+
 public class EventRomLoaded : IEvent
 {
     public string Id { get; set; } = "EventRomLoaded";
