@@ -18,6 +18,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.DynamicCodeGenera
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModLoader.Build", "ModLoader.Build\ModLoader.Build.csproj", "{35DEC749-38A7-499C-9E9F-FC354FC53D18}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OoT.API", "Plugins\LibOoT\OoT.API\OoT.API.csproj", "{3E8032E1-EDB7-446B-8A54-D9E749A410A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Z64Online", "Plugins\Z64Online\Z64Online.csproj", "{C6491191-CD17-4C7A-9228-508ED45C13B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +52,14 @@ Global
 		{35DEC749-38A7-499C-9E9F-FC354FC53D18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35DEC749-38A7-499C-9E9F-FC354FC53D18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35DEC749-38A7-499C-9E9F-FC354FC53D18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E8032E1-EDB7-446B-8A54-D9E749A410A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E8032E1-EDB7-446B-8A54-D9E749A410A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E8032E1-EDB7-446B-8A54-D9E749A410A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E8032E1-EDB7-446B-8A54-D9E749A410A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6491191-CD17-4C7A-9228-508ED45C13B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6491191-CD17-4C7A-9228-508ED45C13B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6491191-CD17-4C7A-9228-508ED45C13B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6491191-CD17-4C7A-9228-508ED45C13B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
