@@ -41,5 +41,5 @@ public class BootstrapFilterAttribute: Attribute
 
 public interface IBootstrapFilter
 {
-    public static abstract bool DoesLoad();
+    public static abstract bool DoesLoad(byte[] rom);
 }

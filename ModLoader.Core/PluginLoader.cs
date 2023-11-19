@@ -34,7 +34,7 @@ public class PluginLoader
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void LoadPluginFromStream(Stream s, CustomAssemblyContext? c, string name)
+    public void LoadPluginFromStream(byte[] rom, Stream s, CustomAssemblyContext? c, string name)
     {
         Assembly data;
         if (c != null)
@@ -88,27 +88,27 @@ public class PluginLoader
                         plugins.Add(context.attribute.Name, context);
                     }
                     Console.WriteLine($"Constructing mod: {context.attribute.Name}");
-                    context.Create();
+                    context.Create(rom);
                 }
             }
         }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void LoadPlugin(string file, CustomAssemblyContext? c)
+    public void LoadPlugin(byte[] rom, string file, CustomAssemblyContext? c)
     {
         var curFile = Path.GetFullPath(file);
         if (Path.GetExtension(curFile) == ".dll")
         {
             Console.WriteLine($"Scanning {curFile}");
             var s = new FileStream(curFile, FileMode.Open);
-            LoadPluginFromStream(s, c, curFile);
+            LoadPluginFromStream(rom, s, c, curFile);
             s.Close();
         }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public void LoadPlugins()
+    public void LoadPlugins(byte[] rom)
     {
         List<string> dlldirs = new List<string> { "./libs", "./mods" };
         int mode = 0;
@@ -140,7 +140,7 @@ public class PluginLoader
                 }
                 foreach (var file in _files)
                 {
-                    LoadPlugin(file, c);
+                    LoadPlugin(rom, file, c);
                 }
             }
             mode++;

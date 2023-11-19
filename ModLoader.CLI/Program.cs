@@ -32,10 +32,10 @@ class ModLoader_CLI
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
             EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
         }
-        Service.loader.LoadPlugins();
-        Service.loader.InitPlugins();
         var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         RomHash = Utils.GetHashSHA1(rom);
+        Service.loader.LoadPlugins(rom);
+        Service.loader.InitPlugins();
         PubEventBus.bus.PushEvent(new EventRomLoaded(rom));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();

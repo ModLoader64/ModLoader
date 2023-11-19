@@ -26,13 +26,13 @@ public class PluginContext
         this.ass = ass;
     }
 
-    private void Setup()
+    private void Setup(byte[] rom)
     {
         foreach (Type type in ass.GetTypes())
         {
             if (Attribute.GetCustomAttribute(type, typeof(BootstrapFilterAttribute)) != null)
             {
-                if (((bool)type.GetMethod("DoesLoad").Invoke(null, Array.Empty<object>()))) {
+                if (((bool)type.GetMethod("DoesLoad").Invoke(null, new object[] { rom }))) {
                     EventSystem.HookUpAttributedDelegates(attribute.Name, type, null);
                 }
             }
@@ -43,29 +43,29 @@ public class PluginContext
         }
     }
 
-    public void Create()
+    public void Create(byte[] rom)
     {
         plugin = new PluginDelegates(type);
         watcher = new FileSystemWatcher(Path.GetDirectoryName(assembly)!);
         watcher.EnableRaisingEvents = hotloadingEnabled;
         watcher.Changed += OnHotLoad;
-        Setup();
+        Setup(rom);
     }
 
     void OnHotLoad(object sender, EventArgs e)
     {
-        Console.WriteLine($"Tearing down {plugin}");
-        watcher!.EnableRaisingEvents = false;
-        Destroy();
-        EventSystem.RemoveModHandlers(attribute.Name);
-        plugin = null!;
-        attribute = null!;
-        context.Unload();
-        // Gotta be a better way to do this. Sleep is bad.
-        Thread.Sleep(1000);
-        context = null!;
-        Console.WriteLine($"Reconstructing {plugin}");
-        this.parent.LoadPlugin(assembly, new CustomAssemblyContext());
+        //Console.WriteLine($"Tearing down {plugin}");
+        //watcher!.EnableRaisingEvents = false;
+        //Destroy();
+        //EventSystem.RemoveModHandlers(attribute.Name);
+        //plugin = null!;
+        //attribute = null!;
+        //context.Unload();
+        //// Gotta be a better way to do this. Sleep is bad.
+        //Thread.Sleep(1000);
+        //context = null!;
+        //Console.WriteLine($"Reconstructing {plugin}");
+        //this.parent.LoadPlugin(assembly, new CustomAssemblyContext());
     }
 
     public void Destroy()

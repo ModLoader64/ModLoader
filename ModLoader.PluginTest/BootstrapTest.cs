@@ -4,7 +4,7 @@
 public class BootstrapTest : IBootstrapFilter
 {
 
-    public static bool DoesLoad()
+    public static bool DoesLoad(byte[] rom)
     {
         return true;
     }
