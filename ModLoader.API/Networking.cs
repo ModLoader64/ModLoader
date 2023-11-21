@@ -1,6 +1,7 @@
 ﻿using Network;
 using Network.Enums;
 using Network.Packets;
+using System.Text.Json.Serialization;
 
 namespace ModLoader.API;
 
@@ -114,6 +115,7 @@ public class EventServerNetworkLobbyCreated : IEvent
 
 public class NetworkPlayer
 {
+    [JsonIgnore]
     public readonly Connection connection;
     public readonly string uuid;
     public readonly string nickname;

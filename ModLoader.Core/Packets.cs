@@ -54,14 +54,17 @@ public class PacketClientJoinDataResp : Packet
 public class PacketServerLobbyJoinedResp : Packet
 {
     public string lobby { get; set; }
-    public NetworkPlayer player { get; set; }
+    public string nickname { get; set; }
+
+    public string uuid { get; set; }
     public u8[] patch { get; set; }
     public bool ok { get; set; }
 
     public PacketServerLobbyJoinedResp(string lobby, NetworkPlayer player, byte[] patch, bool ok)
     {
         this.lobby = lobby;
-        this.player = player;
+        this.nickname = player.nickname;
+        this.uuid = player.uuid;
         this.patch = patch;
         this.ok = ok;
     }
