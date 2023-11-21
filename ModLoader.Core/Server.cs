@@ -221,7 +221,10 @@ public class Server : INetworkingSender
         var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
         var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
         var raw = RawDataConverter.FromASCIIString("ModData", str);
-        Console.WriteLine($"[SERVER]: {dest.nickname} | {packet} {str}");
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[SERVER]: {dest.nickname} | {packet} {str}");
+        }
         foreach (var player in lobby.players)
         {
             if (player == dest)

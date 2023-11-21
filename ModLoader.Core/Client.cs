@@ -136,7 +136,10 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
         var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
         var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
         var raw = RawDataConverter.FromASCIIString("ModData", str);
-        Console.WriteLine($"[CLIENT]: {packet} {str}");
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[CLIENT]: {packet} {str}");
+        }
         container!.TcpConnection.SendRawData(raw);
     }
 
