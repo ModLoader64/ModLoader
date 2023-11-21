@@ -250,7 +250,7 @@ public class Server : INetworkingSender
         }
         foreach (var player in lobby.players)
         {
-            if (player == dest)
+            if (player.uuid == dest.uuid)
             {
                 players[player.uuid].SendRawData(raw);
             }
