@@ -2,6 +2,7 @@
 using Network.Converter;
 using Network.Enums;
 using Newtonsoft.Json;
+using System.Numerics;
 using System.Reflection;
 
 namespace ModLoader.Core;
@@ -96,6 +97,7 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
         var evt = new EventClientNetworkLobbyJoined(packet.lobby, packet.patch);
         PubEventBus.bus.PushEvent(evt);
         NetworkClientData.lobby = packet.lobby;
+        NetworkClientData.me = packet.player;
     }
 
     private void OnServerRequestJoinData(PacketServerRequestJoinData packet, Connection connection)
@@ -134,5 +136,10 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
         var raw = RawDataConverter.FromASCIIString("ModData", str);
         Console.WriteLine($"[CLIENT]: {packet} {str}");
         container!.TcpConnection.SendRawData(raw);
+    }
+
+    public void SendPacketToSpecificPlayer<T>(T packet, NetworkPlayer player, string lobbytarget)
+    {
+        throw new NotImplementedException();
     }
 }
