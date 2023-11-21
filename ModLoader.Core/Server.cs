@@ -82,15 +82,26 @@ public class Server : INetworkingSender
     private void OnPacketDecoded(EventDecodedPacket e)
     {
         var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
+        var type = b1.GetType();
         if (DebugFlags.IsDebugEnabled)
         {
-            Console.WriteLine($"[SERVER]: Got packet {e.Id}");
+            Console.WriteLine($"[SERVER]: Got packet {type.Name}");
         }
-        var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupServerNetworkHandler? value))
         {
             if (value != null) {
+                if (DebugFlags.IsDebugEnabled)
+                {
+                    Console.WriteLine($"[SERVER]: Invoking packet handler for {type.Name}.");
+                }
                 value.method.Invoke(null, new object[] { b1 });
+            }
+            else
+            {
+                if (DebugFlags.IsDebugEnabled)
+                {
+                    Console.WriteLine($"[SERVER]: No packet handler found for {type.Name}.");
+                }
             }
         }
     }
