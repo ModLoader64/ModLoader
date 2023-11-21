@@ -3,6 +3,7 @@ using Network.Converter;
 using Network.Enums;
 using Network.Packets;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace ModLoader.Core;
@@ -19,6 +20,7 @@ public class Server : INetworkingSender
     private JsonSerializerSettings jsonSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
 
     public static Dictionary<string, Lobby> lobbies = new Dictionary<string, Lobby>();
+    public static Dictionary<string, Connection> players = new Dictionary<string, Connection>();
 
     public void PreStartServer()
     {
@@ -129,11 +131,11 @@ public class Server : INetworkingSender
                 bool areAllRemainingPlayersDead = true;
                 List<NetworkPlayer> needsRemoved = new List<NetworkPlayer>();
                 foreach (var player in lobby.Value.players) { 
-                    if (ReferenceEquals(player.connection, connection))
+                    if (ReferenceEquals(players[player.uuid], connection))
                     {
                         needsRemoved.Add(player);
                     }
-                    if (player.connection.IsAlive)
+                    if (players[player.uuid].IsAlive)
                     {
                         areAllRemainingPlayersDead = false;
                     }
@@ -141,6 +143,7 @@ public class Server : INetworkingSender
                 if (needsRemoved.Count > 0)
                 {
                     lobby.Value.players.Remove(needsRemoved.FirstOrDefault()!);
+                    players.Remove(needsRemoved.FirstOrDefault()!.uuid);
                 }
                 if (areAllRemainingPlayersDead)
                 {
@@ -172,7 +175,8 @@ public class Server : INetworkingSender
 
     private void OnClientJoinDataResp(PacketClientJoinDataResp packet, Connection connection)
     {
-        NetworkPlayer player = new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname);
+        NetworkPlayer player = new NetworkPlayer(Guid.NewGuid().ToString(), packet.nickname);
+        players.Add(player.uuid, connection);
         if (!lobbies.Keys.Contains(packet.lobby))
         {
             // Lobby does not exist.
@@ -226,7 +230,7 @@ public class Server : INetworkingSender
         {
             if (player != null)
             {
-                player.connection.SendRawData(raw);
+                players[player.uuid].SendRawData(raw);
             }
         }
     }
@@ -248,7 +252,7 @@ public class Server : INetworkingSender
         {
             if (player == dest)
             {
-                player.connection.SendRawData(raw);
+                players[player.uuid].SendRawData(raw);
             }
         }
     }

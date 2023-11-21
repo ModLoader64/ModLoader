@@ -115,15 +115,12 @@ public class EventServerNetworkLobbyCreated : IEvent
 
 public class NetworkPlayer
 {
-    [JsonIgnore]
-    public readonly Connection connection;
     public readonly string uuid;
     public readonly string nickname;
     public dynamic data { get; set; }
 
-    public NetworkPlayer(Connection connection, string uuid, string nickname)
+    public NetworkPlayer(string uuid, string nickname)
     {
-        this.connection = connection;
         this.uuid = uuid;
         this.nickname = nickname;
     }

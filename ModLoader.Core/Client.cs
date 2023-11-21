@@ -107,7 +107,7 @@ public class Client : INetworkingSender
         Console.WriteLine($"Joined lobby {packet.lobby}");
         NetworkSenders.Client = this;
         NetworkClientData.lobby = packet.lobby;
-        NetworkClientData.me = new NetworkPlayer(connection, packet.uuid, packet.nickname);
+        NetworkClientData.me = new NetworkPlayer(packet.uuid, packet.nickname);
         var evt = new EventClientNetworkLobbyJoined(packet.lobby, packet.patch);
         ReadyToOpenGame = true;
         PubEventBus.bus.PushEvent(evt);
