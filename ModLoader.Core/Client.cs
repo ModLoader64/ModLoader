@@ -99,11 +99,11 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
     {
         Console.WriteLine($"Joined lobby {packet.lobby}");
         NetworkSenders.Client = this;
+        NetworkClientData.lobby = packet.lobby;
+        NetworkClientData.me = packet.player;
         var evt = new EventClientNetworkLobbyJoined(packet.lobby, packet.patch);
         ReadyToOpenGame = true;
         PubEventBus.bus.PushEvent(evt);
-        NetworkClientData.lobby = packet.lobby;
-        NetworkClientData.me = packet.player;
     }
 
     private void OnServerRequestJoinData(PacketServerRequestJoinData packet, Connection connection)
