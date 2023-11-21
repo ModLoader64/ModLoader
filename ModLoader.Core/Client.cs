@@ -71,11 +71,11 @@ public class Client : INetworkingSender
 
     private void OnPacketDecoded(EventDecodedPacket e){
         var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
+        var type = b1.GetType();
         if (DebugFlags.IsDebugEnabled)
         {
-            Console.WriteLine($"[CLIENT]: Got packet {e.Id}");
+            Console.WriteLine($"[CLIENT]: Got packet {type.Name}");
         }
-        var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupClientNetworkHandler? value))
         {
             if (value != null)
