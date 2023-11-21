@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Network" Version="6.2.5.23" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <Reference Include="ImGui.NET.API">
       <HintPath>..\..\ImGui.NET\bin\Release\ImGui.NET\net6.0\ImGui.NET.API.dll</HintPath>
     </Reference>
