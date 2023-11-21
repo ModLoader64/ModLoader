@@ -13,6 +13,7 @@ public static class NetworkEvents
     // Server
     public const string SERVER_ON_NETWORK_CONNECT = "SERVER_ON_NETWORK_CONNECT";
     public const string SERVER_ON_NETWORK_DISCONNECT = "SERVER_ON_NETWORK_DISCONNECT";
+    public const string SERVER_ON_NETWORK_LOBBY_CREATED = "SERVER_ON_NETWORK_LOBBY_CREATED";
     public const string SERVER_ON_NETWORK_LOBBY_JOIN = "SERVER_ON_NETWORK_LOBBY_JOIN";
 }
 
@@ -88,13 +89,26 @@ public class EventServerNetworkDisconnect : IEvent
 public class EventServerNetworkLobbyJoined : IEvent
 {
     public readonly string lobby;
+    public readonly NetworkPlayer player;
     public readonly u8[] patch;
     public string Id { get; set; } = NetworkEvents.SERVER_ON_NETWORK_LOBBY_JOIN;
 
-    public EventServerNetworkLobbyJoined(string lobby, byte[] patch)
+    public EventServerNetworkLobbyJoined(string lobby, NetworkPlayer player, byte[] patch)
     {
         this.lobby = lobby;
+        this.player = player;
         this.patch = patch;
+    }
+}
+
+public class EventServerNetworkLobbyCreated : IEvent
+{
+    public readonly string lobby;
+    public string Id { get; set; } = NetworkEvents.SERVER_ON_NETWORK_LOBBY_CREATED;
+
+    public EventServerNetworkLobbyCreated(string lobby)
+    {
+        this.lobby = lobby;
     }
 }
 
@@ -103,6 +117,7 @@ public class NetworkPlayer
     public readonly Connection connection;
     public readonly string uuid;
     public readonly string nickname;
+    public dynamic data { get; set; }
 
     public NetworkPlayer(Connection connection, string uuid, string nickname)
     {
@@ -155,6 +170,7 @@ public class ServerNetworkHandlerAttribute : Attribute, IEvent
 public interface INetworkingSender
 {
     public void SendPacket<T>(T packet, string lobbytarget);
+    public void SendPacketToSpecificPlayer<T>(T packet, NetworkPlayer player, string lobbytarget);
 }
 
 public static class NetworkSenders
@@ -166,4 +182,5 @@ public static class NetworkSenders
 public static class NetworkClientData
 {
     public static string lobby;
+    public static NetworkPlayer me;
 }

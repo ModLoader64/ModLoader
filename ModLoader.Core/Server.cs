@@ -151,23 +151,24 @@ public class Server : INetworkingSender
 
     private void OnClientJoinDataResp(PacketClientJoinDataResp packet, Connection connection)
     {
-
+        NetworkPlayer player = new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname);
         if (!lobbies.Keys.Contains(packet.lobby))
         {
             // Lobby does not exist.
             var lobby = new Lobby(packet.lobby, packet.patch);
-            lobby.players.Add(new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname));
+            lobby.players.Add(player);
             lobbies.Add(lobby.name, lobby);
+            var e = new EventServerNetworkLobbyCreated(packet.lobby);
+            PubEventBus.bus.PushEvent(e);
         }
         else
         {
             lobbies.TryGetValue(packet.lobby, out var lobby);
             if (lobby == null) return;
-            lobby.players.Add(new NetworkPlayer(connection, Guid.NewGuid().ToString(), packet.nickname));
+            lobby.players.Add(player);
         }
-
-        connection.Send(new PacketServerLobbyJoinedResp(packet.lobby, lobbies[packet.lobby].patch, true));
-        var evt = new EventServerNetworkLobbyJoined(packet.lobby, packet.patch);
+        connection.Send(new PacketServerLobbyJoinedResp(packet.lobby, player, lobbies[packet.lobby].patch, true));
+        var evt = new EventServerNetworkLobbyJoined(packet.lobby, player, packet.patch);
         PubEventBus.bus.PushEvent(evt);
     }
 
@@ -203,6 +204,25 @@ public class Server : INetworkingSender
         foreach (var player in lobby.players)
         {
             if (player != null)
+            {
+                player.connection.SendRawData(raw);
+            }
+        }
+    }
+
+    public void SendPacketToSpecificPlayer<T>(T packet, NetworkPlayer dest, string lobbytarget)
+    {
+        if (packet == null) return;
+        Lobby lobby;
+        lobbies.TryGetValue(lobbytarget, out lobby);
+        if (lobby == null) return;
+        var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
+        var str = JsonConvert.SerializeObject(packet, typeof(object), settings);
+        var raw = RawDataConverter.FromASCIIString("ModData", str);
+        Console.WriteLine($"[SERVER]: {dest.nickname} | {packet} {str}");
+        foreach (var player in lobby.players)
+        {
+            if (player == dest)
             {
                 player.connection.SendRawData(raw);
             }

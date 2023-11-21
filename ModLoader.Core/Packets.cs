@@ -1,5 +1,7 @@
 ﻿
+using Network;
 using Network.Packets;
+using System.Net.Sockets;
 using System.Text.Json;
 
 namespace ModLoader.Core;
@@ -52,12 +54,14 @@ public class PacketClientJoinDataResp : Packet
 public class PacketServerLobbyJoinedResp : Packet
 {
     public string lobby { get; set; }
+    public NetworkPlayer player { get; set; }
     public u8[] patch { get; set; }
     public bool ok { get; set; }
 
-    public PacketServerLobbyJoinedResp(string lobby, byte[] patch, bool ok)
+    public PacketServerLobbyJoinedResp(string lobby, NetworkPlayer player, byte[] patch, bool ok)
     {
         this.lobby = lobby;
+        this.player = player;
         this.patch = patch;
         this.ok = ok;
     }
