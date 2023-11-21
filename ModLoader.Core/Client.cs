@@ -15,6 +15,9 @@ public class Client : INetworkingSender
 
 public void StartClient(PluginLoader? pluginLoader, string address, int port)
     {
+
+        Console.WriteLine("Starting client...");
+
         foreach (MethodInfo m in GetType().GetRuntimeMethods())
         {
             if (m.Name == "OnNetworkSetupEvent")

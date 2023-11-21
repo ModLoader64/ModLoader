@@ -23,6 +23,14 @@ class ModLoader_CLI
 
         Service.bindingLoader.ScanBindingsFolder();
 
+        EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
+
+        var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
+        RomHash = Utils.GetHashSHA1(rom);
+        Service.loader.LoadPlugins(rom);
+        Service.loader.InitPlugins();
+        PubEventBus.bus.PushEvent(new EventRomLoaded(rom));
+
         if (CoreConfigurationHandler.config!.multiplayer.isServer)
         {
             Service.server.StartServer(Service.loader);
@@ -30,22 +38,24 @@ class ModLoader_CLI
         if (CoreConfigurationHandler.config.multiplayer.isClient)
         {
             Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
-            EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
         }
-        var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
-        RomHash = Utils.GetHashSHA1(rom);
-        Service.loader.LoadPlugins(rom);
-        Service.loader.InitPlugins();
-        PubEventBus.bus.PushEvent(new EventRomLoaded(rom));
+
+        Console.Read();
+    }
+
+    private static bool firstFrame = false;
+
+    private static void StartEmulatorBinding()
+    {
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
     }
 
-    private static bool firstFrame = false;
-
-    [OnViUpdate]
-    private static void OnViUpdate(EventNewVi e) {
+    [EventHandler(NetworkEvents.CLIENT_ON_NETWORK_LOBBY_JOIN)]
+    private static void onLobbyJoin(EventClientNetworkLobbyJoined evt) {
+        Console.WriteLine("Frontend received connection event. Starting binding...");
+        StartEmulatorBinding();
     }
 
     [OnFrame]

@@ -23,6 +23,8 @@ public class Server : INetworkingSender
     public void StartServer(PluginLoader? pluginLoader)
     {
 
+        Console.WriteLine("Starting server...");
+
         foreach (MethodInfo m in GetType().GetRuntimeMethods())
         {
             if (m.Name == "OnNetworkSetupEvent")
