@@ -96,12 +96,12 @@ public class Server : INetworkingSender
                 }
                 value.method.Invoke(null, new object[] { b1 });
             }
-            else
+        }
+        else
+        {
+            if (DebugFlags.IsDebugEnabled)
             {
-                if (DebugFlags.IsDebugEnabled)
-                {
-                    Console.WriteLine($"[SERVER]: No packet handler found for {type.Name}.");
-                }
+                Console.WriteLine($"[SERVER]: No packet handler found for {type.Name}.");
             }
         }
     }
