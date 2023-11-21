@@ -1,4 +1,4 @@
-﻿namespace ModLoader.Core
+﻿namespace ModLoader.API
 {
     public static class Utils
     {
