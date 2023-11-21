@@ -64,6 +64,10 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
 
     private void OnPacketDecoded(EventDecodedPacket e){
         var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[CLIENT]: Got packet {e.Id}");
+        }
         var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupClientNetworkHandler? value))
         {

@@ -82,6 +82,10 @@ public class Server : INetworkingSender
     private void OnPacketDecoded(EventDecodedPacket e)
     {
         var b1 = JsonConvert.DeserializeObject(e.payload, jsonSettings)!;
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[SERVER]: Got packet {e.Id}");
+        }
         var type = b1.GetType();
         if (NetworkHandlerContainers.TryGetValue(type.Name, out EventSetupServerNetworkHandler? value))
         {
@@ -143,9 +147,6 @@ public class Server : INetworkingSender
             connection.RegisterPacketHandler<PacketClientHandshake>(OnHandshakePacket, this);
             connection.RegisterPacketHandler<PacketClientJoinDataResp>(OnClientJoinDataResp, this);
             connection.RegisterRawDataHandler("ModData", DefaultModPacketHandler.OnServerModPacket);
-        }
-        else
-        {
             var evt = new EventServerNetworkConnection(connection, type);
             PubEventBus.bus.PushEvent(evt);
         }
