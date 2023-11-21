@@ -37,14 +37,19 @@ class ModLoader_CLI
         Service.loader.InitPlugins();
         PubEventBus.bus.PushEvent(new EventRomLoaded(rom));
 
-        if (CoreConfigurationHandler.config!.multiplayer.isServer)
+        ThreadStart childref = new ThreadStart(StartNetworkingThread);
+        Console.WriteLine("Starting networking thread...");
+        Thread childThread = new Thread(childref);
+        childThread.Start();
+
+        while (!Service.client.ReadyToOpenGame)
         {
-            Service.server.StartServer(Service.loader);
         }
-        if (CoreConfigurationHandler.config.multiplayer.isClient)
-        {
-            Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
-        };
+
+        ThreadStart bindingref = new ThreadStart(StartEmulatorBinding);
+        Console.WriteLine("Starting emulator thread...");
+        Thread bindingThread = new Thread(bindingref);
+        bindingThread.Start();
 
         _quitEvent.WaitOne();
 
@@ -53,27 +58,28 @@ class ModLoader_CLI
     private static bool firstFrame = false;
     private static bool bindingConstructed = false;
 
+    private static void StartNetworkingThread()
+    {
+        if (CoreConfigurationHandler.config!.multiplayer.isServer)
+        {
+            Service.server.StartServer(Service.loader);
+        }
+        if (CoreConfigurationHandler.config.multiplayer.isClient)
+        {
+            Service.client.StartClient(Service.loader, CoreConfigurationHandler.config.multiplayer.server_ip, CoreConfigurationHandler.config.multiplayer.port);
+        };
+    }
+
     private static void StartEmulatorBinding()
     {
         if ( bindingConstructed )
         {
             return;
         }
-        Console.WriteLine("Frontend received connection event. Starting binding...");
         bindingConstructed = true;
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
         Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
-    }
-
-    [EventHandler(NetworkEvents.CLIENT_ON_NETWORK_LOBBY_JOIN)]
-    private static void onLobbyJoin(EventClientNetworkLobbyJoined evt) {
-        StartEmulatorBinding();
-    }
-
-    [EventHandler(NetworkEvents.CLIENT_ON_NETWORK_DISCONNECT)]
-    private static void onDisconnected(EventClientNetworkDisconnect evt) {
-        Console.WriteLine($"We disconnected? {evt.type} {evt.reason}");
     }
 
     [OnFrame]

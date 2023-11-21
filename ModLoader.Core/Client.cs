@@ -13,6 +13,7 @@ public class Client : INetworkingSender
     private ClientConnectionContainer? container;
     private Dictionary<string, EventSetupClientNetworkHandler> NetworkHandlerContainers = new Dictionary<string, EventSetupClientNetworkHandler>();
     private JsonSerializerSettings jsonSettings =  new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
+    public bool ReadyToOpenGame = false;
 
 public void StartClient(PluginLoader? pluginLoader, string address, int port)
     {
@@ -95,6 +96,7 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
         Console.WriteLine($"Joined lobby {packet.lobby}");
         NetworkSenders.Client = this;
         var evt = new EventClientNetworkLobbyJoined(packet.lobby, packet.patch);
+        ReadyToOpenGame = true;
         PubEventBus.bus.PushEvent(evt);
         NetworkClientData.lobby = packet.lobby;
         NetworkClientData.me = packet.player;
