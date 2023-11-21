@@ -15,11 +15,8 @@ public class Client : INetworkingSender
     private JsonSerializerSettings jsonSettings =  new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
     public bool ReadyToOpenGame = false;
 
-public void StartClient(PluginLoader? pluginLoader, string address, int port)
+    public void PreStartClient()
     {
-
-        Console.WriteLine("Starting client...");
-
         foreach (MethodInfo m in GetType().GetRuntimeMethods())
         {
             if (m.Name == "OnNetworkSetupEvent")
@@ -35,6 +32,12 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
                 InternalEventBus.client.RegisterEventHandler(new EventRegistration("EventDecodedPacket", DelegateHelper.CreateDelegate(m, this), ""));
             }
         }
+    }
+
+    public void StartClient(PluginLoader? pluginLoader, string address, int port)
+    {
+
+        Console.WriteLine("Starting client...");
 
         this.pluginLoader = pluginLoader;
 
@@ -44,6 +47,10 @@ public void StartClient(PluginLoader? pluginLoader, string address, int port)
     }
 
     private void OnNetworkSetupEvent(EventSetupClientNetworkHandler e) {
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[CLIENT]: Setting up {e.attr.Id} {e.ModId}");
+        }
         NetworkHandlerContainers.Add(e.attr.Id, e);
     }
 

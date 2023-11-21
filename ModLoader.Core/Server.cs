@@ -20,11 +20,8 @@ public class Server : INetworkingSender
 
     public static Dictionary<string, Lobby> lobbies = new Dictionary<string, Lobby>();
 
-    public void StartServer(PluginLoader? pluginLoader)
+    public void PreStartServer()
     {
-
-        Console.WriteLine("Starting server...");
-
         foreach (MethodInfo m in GetType().GetRuntimeMethods())
         {
             if (m.Name == "OnNetworkSetupEvent")
@@ -40,6 +37,12 @@ public class Server : INetworkingSender
                 InternalEventBus.server.RegisterEventHandler(new EventRegistration("EventDecodedPacket", DelegateHelper.CreateDelegate(m, this), ""));
             }
         }
+    }
+
+    public void StartServer(PluginLoader? pluginLoader)
+    {
+
+        Console.WriteLine("Starting server...");
 
         this.pluginLoader = pluginLoader;
         modSigs = this.pluginLoader!.GetModIdentifiers();
@@ -60,6 +63,10 @@ public class Server : INetworkingSender
 
     private void OnNetworkSetupEvent(EventSetupServerNetworkHandler e)
     {
+        if (DebugFlags.IsDebugEnabled)
+        {
+            Console.WriteLine($"[SERVER]: Setting up {e.attr.Id} {e.ModId}");
+        }
         NetworkHandlerContainers.Add(e.attr.Id, e);
     }
 

@@ -9,6 +9,7 @@ public class Plugin : IPlugin
 
     public static void Init()
     {
+        DebugFlags.IsDebugEnabled = true;
         Console.WriteLine("Init");
     }
 
@@ -21,6 +22,8 @@ public class Plugin : IPlugin
     public static void OnLobbyJoin(EventClientNetworkLobbyJoined e)
     {
         Console.WriteLine("We connected to the lobby!");
+        Console.WriteLine("TRYING TO SEND PACKET");
+        NetworkSenders.Client.SendPacket(new ExamplePacket("???"), NetworkClientData.lobby);
     }
 
     [OnFrame]
@@ -31,6 +34,17 @@ public class Plugin : IPlugin
     [OnViUpdate]
     public static void OnViUpdate(EventNewVi e)
     {
+    }
+
+    [ClientNetworkHandler(typeof(ExamplePacket))]
+    public static void OnPacketClient(ExamplePacket packet) {
+        Console.WriteLine("Client!");
+    }
+
+    [ServerNetworkHandler(typeof(ExamplePacket))]
+    public static void OnPacketServer(ExamplePacket packet)
+    {
+        Console.WriteLine("Server!");
     }
 
 }

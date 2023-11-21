@@ -46,6 +46,13 @@ public class EventBusImpl : IEventBus
                 reg.Action.DynamicInvoke(evt);
             }
         }
+        else
+        {
+            if (DebugFlags.IsDebugEnabled)
+            {
+                Console.WriteLine($"Cannot find handler for {evt.Id}.");
+            }
+        }
     }
 
     public void RegisterEventHandler(EventRegistration reg)
