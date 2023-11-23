@@ -69,3 +69,22 @@ public class PacketServerLobbyJoinedResp : Packet
         this.ok = ok;
     }
 }
+
+public class PacketServerLobbyDisconnectedResp : Packet
+{
+    public string lobby { get; set; }
+    public string nickname { get; set; }
+
+    public string uuid { get; set; }
+    public u8[] patch { get; set; }
+    public bool ok { get; set; }
+
+    public PacketServerLobbyDisconnectedResp(string lobby, NetworkPlayer player, byte[] patch, bool ok)
+    {
+        this.lobby = lobby;
+        this.nickname = player.nickname;
+        this.uuid = player.uuid;
+        this.patch = patch;
+        this.ok = ok;
+    }
+}
