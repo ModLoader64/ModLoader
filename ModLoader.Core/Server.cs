@@ -134,6 +134,7 @@ public class Server : INetworkingSender
                     if (ReferenceEquals(players[player.uuid], connection))
                     {
                         needsRemoved.Add(player);
+                        PubEventBus.bus.PushEvent(new EventServerNetworkLobbyDisconnect(lobby.Value.name, player));
                     }
                     if (players[player.uuid].IsAlive)
                     {

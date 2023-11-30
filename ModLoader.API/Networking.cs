@@ -11,11 +11,13 @@ public static class NetworkEvents
     public const string CLIENT_ON_NETWORK_CONNECT = "CLIENT_ON_NETWORK_CONNECT";
     public const string CLIENT_ON_NETWORK_DISCONNECT = "CLIENT_ON_NETWORK_DISCONNECT";
     public const string CLIENT_ON_NETWORK_LOBBY_JOIN = "CLIENT_ON_NETWORK_LOBBY_JOIN";
+    public const string CLIENT_ON_NETWORK_LOBBY_DISCONNECT = "CLIENT_ON_NETWORK_LOBBY_DISCONNECT";
     // Server
     public const string SERVER_ON_NETWORK_CONNECT = "SERVER_ON_NETWORK_CONNECT";
     public const string SERVER_ON_NETWORK_DISCONNECT = "SERVER_ON_NETWORK_DISCONNECT";
     public const string SERVER_ON_NETWORK_LOBBY_CREATED = "SERVER_ON_NETWORK_LOBBY_CREATED";
     public const string SERVER_ON_NETWORK_LOBBY_JOIN = "SERVER_ON_NETWORK_LOBBY_JOIN";
+    public const string SERVER_ON_NETWORK_LOBBY_DISCONNECT = "SERVER_ON_NETWORK_LOBBY_DISCONNECT";
 }
 
 public class EventClientNetworkConnection : IEvent
@@ -59,6 +61,20 @@ public class EventClientNetworkLobbyJoined : IEvent
     }
 }
 
+public class EventClientNetworkLobbyDisconnect : IEvent
+{
+    public readonly string lobby;
+    public readonly u8[] patch;
+    public string Id { get; set; } = NetworkEvents.CLIENT_ON_NETWORK_LOBBY_DISCONNECT;
+
+    public EventClientNetworkLobbyDisconnect(string lobby, byte[] patch)
+    {
+        this.lobby = lobby;
+        this.patch = patch;
+    }
+}
+
+
 public class EventServerNetworkConnection : IEvent
 {
     public string Id { get; set; } = NetworkEvents.SERVER_ON_NETWORK_CONNECT;
@@ -101,6 +117,20 @@ public class EventServerNetworkLobbyJoined : IEvent
         this.patch = patch;
     }
 }
+
+public class EventServerNetworkLobbyDisconnect: IEvent
+{
+    public readonly string lobby;
+    public readonly NetworkPlayer player;
+    public string Id { get; set; } = NetworkEvents.SERVER_ON_NETWORK_LOBBY_DISCONNECT;
+
+    public EventServerNetworkLobbyDisconnect(string lobby, NetworkPlayer player)
+    {
+        this.lobby = lobby;
+        this.player = player;
+    }
+}
+
 
 public class EventServerNetworkLobbyCreated : IEvent
 {
