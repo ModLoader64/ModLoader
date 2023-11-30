@@ -33,7 +33,7 @@ class ModLoader_CLI
 
         EventSystem.HookUpAttributedDelegates("ModLoader", typeof(ModLoader_CLI), null);
 
-        var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
+        var rom = File.ReadAllBytes(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config!.client.rom)));
         RomHash = Utils.GetHashSHA1(rom);
         Service.loader.LoadPlugins(rom);
         Service.loader.InitPlugins();
@@ -95,9 +95,12 @@ class ModLoader_CLI
             return;
         }
         bindingConstructed = true;
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
-        Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
+        if (CoreConfigurationHandler.config!.multiplayer.isClient)
+        {
+            Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.SetGameFile(Path.GetFullPath(Path.Join("./roms", CoreConfigurationHandler.config.client.rom)));
+            Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.InitBinding();
+            Service.bindingLoader.plugins.FirstOrDefault()!.Value.plugin!.StartBinding();
+        }
     }
 
     [OnFrame]
