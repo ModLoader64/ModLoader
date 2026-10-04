@@ -1,5 +1,6 @@
 #include "network/socket.h"
 
+#include <string.h>
 #include <utility>
 
 #if defined(_WIN32)
