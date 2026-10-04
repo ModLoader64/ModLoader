@@ -3,6 +3,7 @@
 #include "ui/windows.h"
 #include "RmlUi/Core.h"
 #include "modloader_rml.h"
+#include <limits.h>
 #include <string.h>
 #include <unordered_map>
 
