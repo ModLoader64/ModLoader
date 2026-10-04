@@ -1,0 +1,3 @@
+#pragma once
+
+#define MODLOADER_METADATA_VERSION 1 // IMPORTANT: BUMP THIS

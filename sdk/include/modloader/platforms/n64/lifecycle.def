@@ -1,0 +1,3 @@
+MODLOADER_LIFECYCLE(vi, (const ModLoader::N64::Vertical_Interrupt*), On_PreVI, On_VI, On_PostVI, MODLOADER_EVENT_REFRESH)
+MODLOADER_LIFECYCLE(frame, (const ModLoader::Frame*), On_PreFrame, On_Frame, On_PostFrame, MODLOADER_EVENT_FRAME)
+MODLOADER_LIFECYCLE(task, (const ModLoader::N64::Task*), On_PreTask, On_Task, On_PostTask, MODLOADER_EVENT_N64_RSP_TASK)

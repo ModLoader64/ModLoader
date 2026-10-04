@@ -1,0 +1,32 @@
+#include <modloader/detail/component.h>
+@platform_include@
+
+extern "C" {
+__attribute__((weak)) void On_Prepare();
+#define MODLOADER_LIFECYCLE(field, arguments, pre, normal, post, event) \
+    __attribute__((weak)) void pre arguments; \
+    __attribute__((weak)) void normal arguments; \
+    __attribute__((weak)) void post arguments;
+#include <modloader/detail/lifecycle.def>
+@platform_lifecycle_include@
+#undef MODLOADER_LIFECYCLE
+}
+
+namespace {
+
+@platform_definition@
+
+constinit const ModLoader::Runtime::Component gComponent{
+    .prepare = On_Prepare,
+#define MODLOADER_LIFECYCLE(field, arguments, pre, normal, post, event) .field = {pre, normal, post},
+#include <modloader/detail/lifecycle.def>
+#undef MODLOADER_LIFECYCLE
+    .platform = @platform_pointer@,
+};
+
+}
+
+extern "C" void @prefix@_Register() asm("modloader_component.@name@");
+extern "C" MODLOADER_EXPORT("modloader_component.@name@") __attribute__((visibility("default"))) void @prefix@_Register() {
+    ModLoader::Runtime::Register_Component(&gComponent);
+}

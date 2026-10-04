@@ -1,0 +1,9 @@
+build/
+build-*/
+sdk/sysroot/
+__pycache__/
+.cache/
+compile_commands.json
+*.o
+*.obj
+*.log

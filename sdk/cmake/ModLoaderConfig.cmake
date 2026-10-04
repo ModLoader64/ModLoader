@@ -1,0 +1,6 @@
+# find_package(ModLoader)
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/modloader.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/modloader.cmake")
+else()
+    include("${CMAKE_CURRENT_LIST_DIR}/../../../share/modloader/sdk/cmake/modloader.cmake")
+endif()

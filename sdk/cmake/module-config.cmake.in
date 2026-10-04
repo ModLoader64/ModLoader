@@ -1,0 +1,14 @@
+if(TARGET @name@_api)
+    return()
+endif()
+get_filename_component(_modloader_@name@_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+include(CMakeFindDependencyMacro)
+find_dependency(ModLoader CONFIG REQUIRED)
+@dependency_find@
+modloader_import_module(@name@
+    WASM "${_modloader_@name@_prefix}/@destination@/@name@.wasm"
+    @module_package@
+    @module_assets@
+    @module_include@
+    @module_dependencies@
+    @module_namespace@)

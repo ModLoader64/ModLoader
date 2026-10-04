@@ -1,0 +1,44 @@
+[submodule "wamr"]
+	path = third_party/wamr
+	url = https://github.com/ModLoader64/wasm-micro-runtime-modloader.git
+	branch = main
+[submodule "gopher64"]
+	path = emulators/gopher64
+	url = https://github.com/ModLoader64/gopher64-modloader.git
+	branch = main
+[submodule "sdl"]
+	path = third_party/sdl
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "freetype"]
+	path = third_party/freetype
+	url = https://github.com/freetype/freetype.git
+[submodule "imgui"]
+	path = third_party/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "llvm-libc"]
+	path = third_party/llvm-libc
+	url = https://github.com/llvm/llvm-project.git
+	shallow = true
+[submodule "monocypher"]
+	path = third_party/monocypher
+	url = https://github.com/LoupVaillant/Monocypher.git
+[submodule "rmlui"]
+	path = third_party/rmlui
+	url = https://github.com/mikke89/RmlUi.git
+[submodule "stb"]
+	path = third_party/stb
+	url = https://github.com/nothings/stb.git
+[submodule "yyjson"]
+	path = third_party/yyjson
+	url = https://github.com/ibireme/yyjson.git
+[submodule "zlib"]
+	path = third_party/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "abi"]
+	path = ModLoader-ABI
+	url = https://github.com/ModLoader64/ModLoader-ABI.git
+	branch = main
+[submodule "llvm"]
+	path = third_party/llvm
+	url = https://github.com/ModLoader64/llvm-project-modloader.git
+	branch = modloader
