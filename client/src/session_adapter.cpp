@@ -134,8 +134,9 @@ bool Game_Session::Open_Adapter() {
         return false;
     }
 
-    if (!library.Open(path)) {
-        Log_Error("adapter", "cannot load %s", path.c_str());
+    std::string error;
+    if (!library.Open(path, error)) {
+        Log_Error("adapter", "cannot load %s: %s", path.c_str(), error.c_str());
         return false;
     }
 

@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <system_error>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -19,24 +20,33 @@ Library::~Library() {
     Close();
 }
 
-bool Library::Open(const std::string& path) {
+bool Library::Open(const std::string& path, std::string& error) {
     Close();
+    error.clear();
 #if defined(_WIN32)
     DWORD capacity = GetFullPathNameA(path.c_str(), 0, nullptr, nullptr);
     if (capacity == 0) {
+        error = std::system_category().message(GetLastError());
         return false;
     }
 
     std::vector<char> absolute(capacity);
     DWORD length = GetFullPathNameA(path.c_str(), capacity, absolute.data(), nullptr);
     if (length == 0 || length >= capacity) {
+        error = std::system_category().message(length == 0 ? GetLastError() : ERROR_INSUFFICIENT_BUFFER);
         return false;
     }
 
     // Adapter dependencies live beside the adapter DLL
     handle = LoadLibraryExA(absolute.data(), nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+    if (handle == nullptr) {
+        error = std::system_category().message(GetLastError());
+    }
 #else
     handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (handle == nullptr) {
+        error = dlerror();
+    }
 #endif
     return handle != nullptr;
 }

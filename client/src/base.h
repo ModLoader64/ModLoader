@@ -84,7 +84,7 @@ public:
     Library& operator=(const Library&) = delete;
     ~Library();
 
-    bool Open(const std::string& path);
+    bool Open(const std::string& path, std::string& error);
     void Close();
     void* Symbol(const char* name) const;
 
