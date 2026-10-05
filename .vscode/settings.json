@@ -1,5 +1,5 @@
 {
-    "clangd.path": "clangd",
+    "clangd.path": "${env:MODLOADER_CLANGD}",
     "clangd.arguments": [
         "--query-driver=${workspaceFolder}/build-sdk/toolchain/bin/clang*,${env:MODLOADER_SDK}/bin/clang*"
     ],
