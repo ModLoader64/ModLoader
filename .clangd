@@ -1,0 +1,17 @@
+CompileFlags:
+  CompilationDatabase: build-client
+---
+If:
+  PathMatch: sdk/(include|src|module)/.*
+CompileFlags:
+  CompilationDatabase: build-sdk/runtime/n64
+---
+If:
+  PathMatch: sdk/(include/modloader/platforms|src/platforms)/generic/.*
+CompileFlags:
+  CompilationDatabase: build-sdk/runtime/generic
+---
+If:
+  PathMatch: sdk/(libc|runtimes)/.*
+CompileFlags:
+  CompilationDatabase: build-sdk/runtimes

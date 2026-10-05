@@ -1,0 +1,8 @@
+{
+    "clangd.path": "clangd",
+    "clangd.arguments": [
+        "--query-driver=${workspaceFolder}/build-sdk/toolchain/bin/clang*,${env:MODLOADER_SDK}/bin/clang*"
+    ],
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "cmake.configureOnOpen": false
+}
