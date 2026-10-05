@@ -48,7 +48,7 @@ bool Declare(const Module& module, u64 folder_address, u64 folder_length, u64 re
     setting.choices = module.C_Text(record->choices);
     setting.value = module.C_Text(record->value);
     setting.type = record->type;
-    setting.flags = record->flags & MODLOADER_SETTING_HIDDEN;
+    setting.flags = record->flags & (MODLOADER_SETTING_HIDDEN | MODLOADER_SETTING_DISABLED);
     setting.minimum = record->minimum;
     setting.maximum = record->maximum;
 

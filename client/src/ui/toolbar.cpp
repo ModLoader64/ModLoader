@@ -224,6 +224,7 @@ void Draw_Text(Settings_Group& group, const Setting& setting) {
 void Draw_Setting(Settings_Group& group, const Setting& setting) {
     ImGui::PushID(&group);
     ImGui::PushID(setting.key.c_str());
+    ImGui::BeginDisabled((setting.flags & MODLOADER_SETTING_DISABLED) != 0);
     switch (setting.type) {
     case MODLOADER_SETTING_BOOL:
         if (ImGui::MenuItem(setting.label.c_str(), nullptr, setting.value == "true")) {
@@ -245,6 +246,7 @@ void Draw_Setting(Settings_Group& group, const Setting& setting) {
         Draw_Text(group, setting);
         break;
     }
+    ImGui::EndDisabled();
     ImGui::PopID();
     ImGui::PopID();
 }
