@@ -34,7 +34,11 @@ add_custom_target(modloader_tools
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${client_tools} "$<TARGET_FILE_DIR:modloader>/"
     VERBATIM)
 add_dependencies(modloader modloader_tools)
-install(PROGRAMS ${client_tools} DESTINATION bin COMPONENT Client)
+foreach(tool IN LISTS client_tools)
+    file(REAL_PATH "${tool}" tool_source)
+    get_filename_component(tool_name "${tool}" NAME)
+    install(PROGRAMS "${tool_source}" DESTINATION bin RENAME "${tool_name}" COMPONENT Client)
+endforeach()
 install(TARGETS modloader RUNTIME DESTINATION bin COMPONENT Client)
 
 set(MODLOADER_ADAPTERS "gopher64" CACHE STRING "Adapters to build (semicolon separated; empty builds only the client)")

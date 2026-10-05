@@ -2,6 +2,16 @@
 
 #include <string.h>
 
+#if !defined(_WIN32)
+#include <fcntl.h>
+#include <limits.h>
+#include <unistd.h>
+
+static int Duplicate_Handle(u64 handle) {
+    return handle <= INT_MAX ? fcntl(static_cast<int>(handle), F_DUPFD_CLOEXEC, 0) : -1;
+}
+#endif
+
 u32 Vulkan_Renderer::Texture_Size_Limit() const {
     return textureSizeLimit;
 }
@@ -211,6 +221,8 @@ VkSemaphore Vulkan_Renderer::Shared_Semaphore(u64 handle, bool d3d12_fence) {
     bool imported = false;
 #if defined(_WIN32)
     VkImportSemaphoreWin32HandleInfoKHR import = { VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR };
+#else
+    VkImportSemaphoreFdInfoKHR import = { VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR };
 #endif
 
     type.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
@@ -224,8 +236,16 @@ VkSemaphore Vulkan_Renderer::Shared_Semaphore(u64 handle, bool d3d12_fence) {
     import.handle = reinterpret_cast<HANDLE>(handle);
     imported = vk.vkImportSemaphoreWin32HandleKHR(device, &import) == VK_SUCCESS;
 #else
-    (void)handle;
     (void)d3d12_fence;
+    import.semaphore = semaphore;
+    import.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+    import.fd = Duplicate_Handle(handle);
+    if (import.fd >= 0) {
+        imported = vk.vkImportSemaphoreFdKHR(device, &import) == VK_SUCCESS;
+        if (!imported) {
+            close(import.fd);
+        }
+    }
 #endif
     if (!imported) {
         vk.vkDestroySemaphore(device, semaphore, nullptr);
@@ -240,16 +260,22 @@ std::unique_ptr<Renderer_Texture> Vulkan_Renderer::Import_Texture(const ModLoade
     bool same_device = d3d12 ? luidValid && memcmp(shared.deviceUuid, luid, VK_LUID_SIZE) == 0 : memcmp(shared.deviceUuid, uuid, VK_UUID_SIZE) == 0;
     std::unique_ptr<Vulkan_Texture> texture;
     bool created = false;
-#if defined(_WIN32)
     VkExternalMemoryImageCreateInfo external_info = { VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO };
     VkImageCreateInfo image = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
     VkMemoryRequirements requirements;
     VkMemoryDedicatedAllocateInfo dedicated = { VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO };
-    VkImportMemoryWin32HandleInfoKHR import = { VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR };
     VkMemoryAllocateInfo allocation = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+#if defined(_WIN32)
+    VkImportMemoryWin32HandleInfoKHR import = { VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR };
+    bool known_handle = shared.handleType == MODLOADER_HANDLE_OPAQUE_WIN32 || d3d12;
+    external_info.handleTypes = d3d12 ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE_BIT : VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#else
+    VkImportMemoryFdInfoKHR import = { VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR };
+    bool known_handle = shared.handleType == MODLOADER_HANDLE_OPAQUE_FD;
+    external_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
 #endif
 
-    if (!external || !same_device || !known_format || width == 0 || height == 0 || width > textureSizeLimit || height > textureSizeLimit) {
+    if (!external || !same_device || !known_format || !known_handle || width == 0 || height == 0 || width > textureSizeLimit || height > textureSizeLimit) {
         return nullptr;
     }
 
@@ -264,8 +290,6 @@ std::unique_ptr<Renderer_Texture> Vulkan_Renderer::Import_Texture(const ModLoade
     texture->externalLayout = d3d12 ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     texture->ready = Shared_Semaphore(shared.readySemaphoreHandle, d3d12);
     texture->release = Shared_Semaphore(shared.releaseSemaphoreHandle, d3d12);
-#if defined(_WIN32)
-    external_info.handleTypes = d3d12 ? VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE_BIT : VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
     image.pNext = &external_info;
     image.imageType = VK_IMAGE_TYPE_2D;
     image.format = texture->vkFormat;
@@ -276,21 +300,33 @@ std::unique_ptr<Renderer_Texture> Vulkan_Renderer::Import_Texture(const ModLoade
     image.tiling = VK_IMAGE_TILING_OPTIMAL;
     image.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    created = (shared.handleType == MODLOADER_HANDLE_OPAQUE_WIN32 || d3d12) && texture->ready != VK_NULL_HANDLE && texture->release != VK_NULL_HANDLE;
+    created = texture->ready != VK_NULL_HANDLE && texture->release != VK_NULL_HANDLE;
     created = created && vk.vkCreateImage(device, &image, nullptr, &texture->image) == VK_SUCCESS;
     if (created) {
         vk.vkGetImageMemoryRequirements(device, texture->image, &requirements);
         import.handleType = static_cast<VkExternalMemoryHandleTypeFlagBits>(external_info.handleTypes);
-        import.handle = reinterpret_cast<HANDLE>(shared.memoryHandle);
         dedicated.image = texture->image;
         import.pNext = &dedicated;
         allocation.pNext = &import;
         allocation.allocationSize = shared.memorySize;
         created = Memory_Type(requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, allocation.memoryTypeIndex);
+#if defined(_WIN32)
+        import.handle = reinterpret_cast<HANDLE>(shared.memoryHandle);
         created = created && vk.vkAllocateMemory(device, &allocation, nullptr, &texture->memory) == VK_SUCCESS;
+#else
+        if (created) {
+            import.fd = Duplicate_Handle(shared.memoryHandle);
+            created = import.fd >= 0;
+            if (created) {
+                created = vk.vkAllocateMemory(device, &allocation, nullptr, &texture->memory) == VK_SUCCESS;
+                if (!created) {
+                    close(import.fd);
+                }
+            }
+        }
+#endif
         created = created && vk.vkBindImageMemory(device, texture->image, texture->memory, 0) == VK_SUCCESS;
     }
-#endif
     if (!created || !Finish_Texture(*texture)) {
         Log_Warning("renderer", "cannot import shared frame");
         return nullptr;

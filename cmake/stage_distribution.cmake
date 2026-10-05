@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 
 set(staging "${BUILD_DIRECTORY}/dist-staging")
 file(REMOVE_RECURSE "${staging}")
+set(ENV{CMAKE_INSTALL_MODE} COPY)
 execute_process(COMMAND "${CMAKE_COMMAND}" --install "${BUILD_DIRECTORY}"
     --prefix "${staging}" --component "${COMPONENT}" --config "${CONFIGURATION}"
     COMMAND_ERROR_IS_FATAL ANY)

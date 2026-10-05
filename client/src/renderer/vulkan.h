@@ -107,6 +107,8 @@ struct Vulkan_Functions {
     VULKAN_DEVICE_FUNCTIONS(VULKAN_DECLARE)
 #if defined(_WIN32)
     PFN_vkImportSemaphoreWin32HandleKHR vkImportSemaphoreWin32HandleKHR;
+#else
+    PFN_vkImportSemaphoreFdKHR vkImportSemaphoreFdKHR;
 #endif
 };
 

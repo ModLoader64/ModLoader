@@ -4,6 +4,18 @@
 #include <SDL3/SDL_vulkan.h>
 #include <string.h>
 
+namespace {
+constexpr const char* gExternalExtensions[] = {
+#if defined(_WIN32)
+    VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+    VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
+#else
+    VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+    VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+#endif
+};
+} // namespace
+
 std::unique_ptr<Renderer> Renderer::Create() {
     auto renderer = std::make_unique<Vulkan_Renderer>();
 
@@ -39,12 +51,16 @@ bool Vulkan_Renderer::Load_Device_Functions() {
         vk.vkGetDeviceProcAddr(device, "vkImportSemaphoreWin32HandleKHR")
     );
     external = external && vk.vkImportSemaphoreWin32HandleKHR != nullptr;
+#else
+    vk.vkImportSemaphoreFdKHR = reinterpret_cast<PFN_vkImportSemaphoreFdKHR>(
+        vk.vkGetDeviceProcAddr(device, "vkImportSemaphoreFdKHR")
+    );
+    external = external && vk.vkImportSemaphoreFdKHR != nullptr;
 #endif
     return loaded;
 }
 
 bool Vulkan_Renderer::Has_External_Extensions() {
-#if defined(_WIN32)
     std::vector<VkExtensionProperties> available;
     u32 count = 0;
     u32 found = 0;
@@ -53,12 +69,11 @@ bool Vulkan_Renderer::Has_External_Extensions() {
     available.resize(count);
     vk.vkEnumerateDeviceExtensionProperties(physical, nullptr, &count, available.data());
     for (const VkExtensionProperties& extension : available) {
-        found += strcmp(extension.extensionName, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME) == 0 || strcmp(extension.extensionName, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME) == 0 ? 1 : 0;
+        for (const char* name : gExternalExtensions) {
+            found += strcmp(extension.extensionName, name) == 0;
+        }
     }
-    return found == 2;
-#else
-    return false;
-#endif
+    return found == std::size(gExternalExtensions);
 }
 
 bool Vulkan_Renderer::Pick_Device() {
@@ -115,12 +130,11 @@ bool Vulkan_Renderer::Create_Device() {
 
     vk.vkGetPhysicalDeviceMemoryProperties(physical, &memory);
     external = Has_External_Extensions();
-#if defined(_WIN32)
     if (external) {
-        extensions[extension_count++] = VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME;
-        extensions[extension_count++] = VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME;
+        for (const char* name : gExternalExtensions) {
+            extensions[extension_count++] = name;
+        }
     }
-#endif
     queue_info.queueFamilyIndex = queueFamily;
     queue_info.queueCount = 1;
     queue_info.pQueuePriorities = &priority;
