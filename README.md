@@ -2,6 +2,11 @@
 
 Requires CMake, Ninja, Clang, Python 3, and Rust. On Windows, install Visual Studio C++ build tools and the Windows SDK.
 
+to begin:
+```sh
+git submodule update --init --recursive
+```
+
 ## SDK
 
 To build the SDK:
