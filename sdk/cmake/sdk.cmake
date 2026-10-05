@@ -1,5 +1,10 @@
 include_guard(GLOBAL)
 
+if(NOT MODLOADER_PLATFORM)
+    set(MODLOADER_PLATFORM n64)
+endif()
+set(MODLOADER_PLATFORM "${MODLOADER_PLATFORM}" CACHE STRING "Module platform" FORCE)
+
 get_filename_component(MODLOADER_SDK_DIR "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 set(MODLOADER_SDK_DIR "${MODLOADER_SDK_DIR}" CACHE INTERNAL "Selected ModLoader SDK" FORCE)
 set(metadata_header "${MODLOADER_SDK_DIR}/include/modloader/detail/metadata.h")
