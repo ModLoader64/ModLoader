@@ -117,7 +117,7 @@ private:
 u64 Thread_Current_Id();
 u32 Thread_Cpu_Count();
 
-s32 Process_Run(const std::string& executable, std::span<const std::string> arguments);
+s32 Process_Run(const std::string& executable, std::span<const std::string> arguments, const std::string& output = {});
 u32 Process_Current_Id();
 
 class Process {
@@ -129,7 +129,7 @@ public:
         Release();
     }
 
-    bool Spawn(const std::string& executable, std::span<const std::string> arguments);
+    bool Spawn(const std::string& executable, std::span<const std::string> arguments, const std::string& output = {});
     std::optional<s32> Poll();
     void Release();
     bool Is_Watched() const {

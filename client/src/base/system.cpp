@@ -9,6 +9,7 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <spawn.h>
 #include <sys/wait.h>
@@ -194,7 +195,7 @@ static void Process_Append_Argument(std::string& line, const std::string& argume
 }
 #endif
 
-bool Process::Spawn(const std::string& executable, std::span<const std::string> arguments) {
+bool Process::Spawn(const std::string& executable, std::span<const std::string> arguments, const std::string& output) {
     Release();
 #if defined(_WIN32)
     STARTUPINFOA startup = {};
@@ -208,7 +209,25 @@ bool Process::Spawn(const std::string& executable, std::span<const std::string> 
     }
 
     startup.cb = sizeof(startup);
-    if (!CreateProcessA(executable.c_str(), line.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &startup, &information)) {
+    HANDLE output_handle = INVALID_HANDLE_VALUE;
+    if (!output.empty()) {
+        SECURITY_ATTRIBUTES attributes = {sizeof(attributes), nullptr, TRUE};
+        output_handle = CreateFileA(output.c_str(), GENERIC_WRITE, FILE_SHARE_READ, &attributes, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (output_handle == INVALID_HANDLE_VALUE) {
+            Log_Error("process", "cannot open %s: %s", output.c_str(), std::system_category().message(GetLastError()).c_str());
+            return false;
+        }
+        startup.dwFlags = STARTF_USESTDHANDLES;
+        startup.hStdOutput = output_handle;
+        startup.hStdError = output_handle;
+    }
+    bool created = CreateProcessA(executable.c_str(), line.data(), nullptr, nullptr, !output.empty(), CREATE_NO_WINDOW, nullptr, nullptr, &startup, &information) != 0;
+    DWORD error = created ? ERROR_SUCCESS : GetLastError();
+    if (output_handle != INVALID_HANDLE_VALUE) {
+        CloseHandle(output_handle);
+    }
+    if (!created) {
+        Log_Error("process", "cannot start %s: %s", executable.c_str(), std::system_category().message(error).c_str());
         return false;
     }
     CloseHandle(information.hThread);
@@ -224,7 +243,24 @@ bool Process::Spawn(const std::string& executable, std::span<const std::string> 
     }
 
     values.push_back(nullptr);
-    if (posix_spawnp(&child, executable.c_str(), nullptr, nullptr, values.data(), environ) != 0) {
+    posix_spawn_file_actions_t actions;
+    int error = posix_spawn_file_actions_init(&actions);
+    if (error != 0) {
+        Log_Error("process", "cannot prepare %s: %s", executable.c_str(), strerror(error));
+        return false;
+    }
+    if (!output.empty()) {
+        error = posix_spawn_file_actions_addopen(&actions, STDOUT_FILENO, output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        if (error == 0) {
+            error = posix_spawn_file_actions_adddup2(&actions, STDOUT_FILENO, STDERR_FILENO);
+        }
+    }
+    if (error == 0) {
+        error = posix_spawnp(&child, executable.c_str(), &actions, nullptr, values.data(), environ);
+    }
+    posix_spawn_file_actions_destroy(&actions);
+    if (error != 0) {
+        Log_Error("process", "cannot start %s: %s", executable.c_str(), strerror(error));
         return false;
     }
     id = child;
@@ -278,11 +314,11 @@ u32 Process_Current_Id() {
 #endif
 }
 
-s32 Process_Run(const std::string& executable, std::span<const std::string> arguments) {
+s32 Process_Run(const std::string& executable, std::span<const std::string> arguments, const std::string& output) {
     Process process;
     std::optional<s32> result;
 
-    if (!process.Spawn(executable, arguments)) {
+    if (!process.Spawn(executable, arguments, output)) {
         return -1;
     }
 

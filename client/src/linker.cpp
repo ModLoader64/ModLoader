@@ -189,10 +189,29 @@ std::optional<Linked_Module> Link(Runtime& runtime, const Module_Link_Runtime& f
     }
 
     std::string response_argument = "@" + response;
-    s32 result = Process_Run(linker.path, std::span(&response_argument, 1));
-    bool success = result == 0 && Publish_Cache(temporary, output, key);
-    if (!success) {
+    std::string diagnostics = Path_Join(work, "link.log");
+    s32 result = Process_Run(linker.path, std::span(&response_argument, 1), diagnostics);
+    if (result != 0) {
         Log_Error("linker", "%s: linking failed (%d)", name.c_str(), result);
+        for (usize index = 0; index < modules.size(); ++index) {
+            Log_Error("linker", "%llu.o: %s", static_cast<unsigned long long>(index), modules[index].manifest.name.c_str());
+        }
+        Log_Error("linker", "runtime.o: SDK runtime");
+        if (auto bytes = File_Read(diagnostics); bytes && !bytes->empty()) {
+            std::string_view text(reinterpret_cast<const char*>(bytes->data()), bytes->size());
+            while (!text.empty()) {
+                usize end = text.find_first_of("\r\n");
+                std::string_view line = text.substr(0, end);
+                if (!line.empty()) {
+                    Log_Error("linker", "%.*s", static_cast<int>(line.size()), line.data());
+                }
+                text.remove_prefix(end == std::string_view::npos ? text.size() : end + 1);
+            }
+        }
+        return std::nullopt;
+    }
+    if (!Publish_Cache(temporary, output, key)) {
+        Log_Error("linker", "%s: cannot cache linked module to %s", name.c_str(), output.c_str());
         return std::nullopt;
     }
 
