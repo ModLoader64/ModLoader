@@ -59,7 +59,7 @@ void Runtime::Ui() {
 
         wasm_val_t argument = Wasm_I32(static_cast<s32>(phase));
         Imgui_Enter_Module(*module);
-        if (!wasm_runtime_call_wasm_a(module->uiContext.execEnv, module->uiPhase, 0, nullptr, 1, &argument)) {
+        if (!module->Execute(module->uiContext.execEnv, module->uiPhase, 0, nullptr, 1, &argument)) {
             Ui_Trapped(*module, "a UI phase");
         }
 
@@ -85,7 +85,7 @@ u32 Runtime::Ui_Event(Module& module, u64 listener, const void* record, u64 size
     wasm_val_t address = Wasm_I64(0);
 
     if (module.disabled || exec_env == nullptr || module.uiEventReserve == nullptr ||
-        !wasm_runtime_call_wasm_a(exec_env, module.uiEventReserve, 1, &address, 1, &capacity)) {
+        !module.Execute(exec_env, module.uiEventReserve, 1, &address, 1, &capacity)) {
         return 0;
     }
 
@@ -100,7 +100,7 @@ u32 Runtime::Ui_Event(Module& module, u64 listener, const void* record, u64 size
 
     wasm_val_t arguments[2] = { Wasm_I64(listener), Wasm_I64(size) };
     wasm_val_t result = Wasm_I32(0);
-    if (!wasm_runtime_call_wasm_a(exec_env, module.uiEvent, 1, &result, 2, arguments)) {
+    if (!module.Execute(exec_env, module.uiEvent, 1, &result, 2, arguments)) {
         Ui_Trapped(module, "a listener");
         return 0;
     }

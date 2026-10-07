@@ -13,6 +13,9 @@ MODLOADER_IMPORT("platform_query") s64 ModLoader_Host_Platform_Query(u32 query, 
 MODLOADER_IMPORT("symbol_define") void ModLoader_Host_Symbol_Define(const char* name, u64 length, u64 address);
 MODLOADER_IMPORT("symbol_address") u64 ModLoader_Host_Symbol_Address(const char* name, u64 length);
 MODLOADER_IMPORT("bind_symbols") u32 ModLoader_Host_Bind_Symbols();
+MODLOADER_IMPORT("layout_load") u32 ModLoader_Host_Layout_Load(const char* json, u64 length);
+MODLOADER_IMPORT("layout_select") u32 ModLoader_Host_Layout_Select(u32 profile);
+MODLOADER_IMPORT("layout_unload") void ModLoader_Host_Layout_Unload(u32 profile);
 MODLOADER_IMPORT("event_subscribe") void ModLoader_Host_Event_Subscribe(u32 event, u32 enabled);
 MODLOADER_IMPORT("invalidate_code") void ModLoader_Host_Invalidate_Code(u64 address, u64 size);
 MODLOADER_IMPORT("memory_peek") u64 ModLoader_Host_Memory_Peek(u32 processor, u64 address, void* buffer, u64 size);

@@ -57,6 +57,8 @@ struct Module {
     std::unordered_set<std::string> serverPackets;
     std::vector<Module_Dirty_Map> dirtyMaps;
     std::vector<Module_Guest_Global> guestGlobals; // names/data owned by the main module instance
+    std::vector<Module_Layout_Slot> layoutSlots;
+    std::unordered_map<wasm_module_inst_t, Module_Layout_Binding> layoutBindings;
     std::vector<std::string> components;
     std::vector<Module_Manifest> manifests;
     std::unordered_map<u64, Savestate_Block> savestateBlocks;
@@ -89,6 +91,7 @@ struct Module {
 
     // Main instance only
     bool Call(wasm_function_inst_t function, const char* what, std::initializer_list<wasm_val_t> arguments = {}, wasm_val_t* result = nullptr);
+    bool Execute(wasm_exec_env_t context, wasm_function_inst_t function, u32 result_count, wasm_val_t* results, u32 argument_count, wasm_val_t* arguments);
     void Trap(wasm_exec_env_t context, const char* what);
     bool Call_Handler(u64 handler, u32 processor, void* state, u64 size, bool& out_result);
     void* Event_Memory(u64 size);

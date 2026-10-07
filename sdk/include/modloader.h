@@ -3,6 +3,7 @@
 // Common plugin API
 
 #include <modloader/guest/memory.h>
+#include <modloader/guest/layout.h>
 #include <modloader/event.h>
 #include <modloader/logger.h>
 #include <modloader/memory.h>

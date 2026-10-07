@@ -20,8 +20,13 @@ void* Thread_Main(wasm_exec_env_t exec_env, void* argument) {
         return nullptr;
     }
 
-    if (!wasm_runtime_call_wasm_a(exec_env, start, 0, nullptr, 1, &context)) {
+    if (!module.Execute(exec_env, start, 0, nullptr, 1, &context)) {
         module.Trap(exec_env, "thread");
+    }
+
+    {
+        std::lock_guard guard(module.resourceLock);
+        module.layoutBindings.erase(instance);
     }
 
     return nullptr;

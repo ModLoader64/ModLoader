@@ -175,7 +175,7 @@ bool Runtime::Instantiate(Module& loaded) {
         return false;
     }
 
-    if (!Bind_Exports(*module)) {
+    if (!Layouts_Bind(*module) || !Bind_Exports(*module)) {
         module->disabled = true;
         return false;
     }

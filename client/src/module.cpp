@@ -49,12 +49,17 @@ bool Module::Call(wasm_function_inst_t function, const char* what, std::initiali
     }
 
     std::ranges::copy(arguments, values);
-    if (wasm_runtime_call_wasm_a(execEnv, function, result != nullptr ? 1 : 0, result, static_cast<u32>(arguments.size()), values)) {
+    if (Execute(execEnv, function, result != nullptr ? 1 : 0, result, static_cast<u32>(arguments.size()), values)) {
         return true;
     }
 
     Trap(execEnv, what);
     return false;
+}
+
+bool Module::Execute(wasm_exec_env_t context, wasm_function_inst_t function, u32 result_count, wasm_val_t* results, u32 argument_count, wasm_val_t* arguments) {
+    Layout_Execution layout(*this, wasm_runtime_get_module_inst(context));
+    return layout.Ready() && wasm_runtime_call_wasm_a(context, function, result_count, results, argument_count, arguments);
 }
 
 void Module::Trap(wasm_exec_env_t context, const char* what) {
@@ -139,7 +144,7 @@ bool Module::Create_Context(wasm_exec_env_t caller, Module_Context& out) {
     wasm_function_inst_t prepare = wasm_runtime_lookup_function(caller_instance, "modloader_thread_prepare");
     wasm_val_t record = Wasm_I64(0);
 
-    if (prepare == nullptr || !wasm_runtime_call_wasm_a(caller, prepare, 1, &record, 0, nullptr) || record.of.i64 == 0) {
+    if (prepare == nullptr || !Execute(caller, prepare, 1, &record, 0, nullptr) || record.of.i64 == 0) {
         return false;
     }
 
@@ -149,16 +154,20 @@ bool Module::Create_Context(wasm_exec_env_t caller, Module_Context& out) {
     if (context.execEnv != nullptr) {
         wasm_module_inst_t spawned = wasm_runtime_get_module_inst(context.execEnv);
         wasm_function_inst_t adopt = wasm_runtime_lookup_function(spawned, "modloader_thread_adopt");
-        if (adopt != nullptr && Adopt_Instance(spawned) && wasm_runtime_call_wasm_a(context.execEnv, adopt, 0, nullptr, 1, &record)) {
+        if (adopt != nullptr && Adopt_Instance(spawned) && Execute(context.execEnv, adopt, 0, nullptr, 1, &record)) {
             out = context;
             return true;
         }
         wasm_runtime_destroy_spawned_exec_env(context.execEnv);
+        {
+            std::lock_guard guard(resourceLock);
+            layoutBindings.erase(spawned);
+        }
     }
 
     wasm_function_inst_t discard = wasm_runtime_lookup_function(caller_instance, "modloader_thread_release");
     if (discard != nullptr) {
-        wasm_runtime_call_wasm_a(caller, discard, 0, nullptr, 1, &record);
+        Execute(caller, discard, 0, nullptr, 1, &record);
     }
 
     return false;
@@ -174,10 +183,14 @@ void Module::Destroy_Context(Module_Context& context) {
     wasm_val_t record = Wasm_I64(context.threadRecord);
 
     if (release != nullptr) {
-        wasm_runtime_call_wasm_a(context.execEnv, release, 0, nullptr, 1, &record);
+        Execute(context.execEnv, release, 0, nullptr, 1, &record);
     }
 
     wasm_runtime_destroy_spawned_exec_env(context.execEnv);
+    {
+        std::lock_guard guard(resourceLock);
+        layoutBindings.erase(spawned);
+    }
     context = {};
 }
 
@@ -220,4 +233,3 @@ bool Require_Emulation_Thread(wasm_exec_env_t exec_env, const char* what) {
     wasm_runtime_set_exception(wasm_runtime_get_module_inst(exec_env), message.c_str());
     return false;
 }
-

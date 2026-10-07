@@ -2,6 +2,7 @@
 
 #include "base.h"
 #include "module_execution.h"
+#include "guest_layout.h"
 #include "module_manifest.h"
 #include "platform.h"
 #include "textures.h"
@@ -187,6 +188,7 @@ public:
     std::unordered_map<u32, Hypercall_Entry> hypercalls;
     u32 nextHypercallId = 1;
     std::unordered_map<std::string, Runtime_Symbol> symbols;
+    Guest_Layouts layouts;
     Texture_Manager textures;
     std::unordered_map<u32, std::shared_ptr<std::vector<Module*>>> subscribers;
     std::vector<Module*> uiModules;

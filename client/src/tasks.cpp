@@ -68,7 +68,7 @@ bool Run(Module& module, wasm_exec_env_t exec_env, wasm_function_inst_t function
         return false;
     }
 
-    if (wasm_runtime_call_wasm_a(exec_env, function, 0, nullptr, 1, &argument)) {
+    if (module.Execute(exec_env, function, 0, nullptr, 1, &argument)) {
         return true;
     }
 

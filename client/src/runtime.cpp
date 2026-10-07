@@ -35,6 +35,7 @@ bool Start_Wamr(Platform& platform) {
     }
 
     Core_Register_Natives();
+    Layouts_Register_Natives();
     N64_Tools_Register_Natives();
     Register_Platform(platform);
     Threads_Register_Natives();
@@ -199,6 +200,7 @@ void Runtime::Release(Module& module) {
     Threads_Release_Owner(module);
     Files_Release_Owner(module);
     Breakpoints_Release_Owner(module);
+    layouts.Release(module);
 
     std::erase_if(hypercalls, [&](const auto& entry) {
         return entry.second.owner == &module;
