@@ -17,10 +17,7 @@ while getopts ":scx" opt; do
             echo "  -s    Build SDK"
             echo "  -c    Build Client"
             echo "  -x    Clean build directories before building"
-            echo "  -h    Show this help message"
             exit 0
-            ;;
-            exit 1
             ;;
     esac
 done
@@ -47,8 +44,10 @@ if [[ "$sdk_flag" == true ]]; then
     echo "Building SDK..."
 
     mkdir -p build-sdk
-    cmake -S sdk -B build-sdk -G Ninja
-    cmake --build build-sdk
+    cd build-sdk
+    cmake -G Ninja ../sdk
+    cmake --build .
+    cd ..
 fi
 
 # Build Client
@@ -56,9 +55,11 @@ if [[ "$client_flag" == true ]]; then
     echo "Building Client..."
 
     mkdir -p build-client
-    cmake -S . -B build-client -G Ninja \
+    cd build-client
+    cmake -G Ninja .. \
         "-DMODLOADER_SDK=../build/dist"
-    cmake --build build-client
+    cmake --build .
+    cd ..
 fi
 
 echo "Build completed successfully."
