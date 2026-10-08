@@ -43,7 +43,7 @@ fi
 if [[ "$sdk_flag" == true ]]; then
     echo "Building SDK..."
 
-    mkdir -p build-sdk
+    mkdir build-sdk
     cd build-sdk
     cmake -G Ninja ../sdk
     cmake --build .
@@ -54,10 +54,9 @@ fi
 if [[ "$client_flag" == true ]]; then
     echo "Building Client..."
 
-    mkdir -p build-client
+    mkdir build-client
     cd build-client
-    cmake -G Ninja .. \
-        "-DMODLOADER_SDK=../build/dist"
+    cmake -G Ninja .. -DMODLOADER_SDK=../build-sdk/dist
     cmake --build .
     cd ..
 fi
