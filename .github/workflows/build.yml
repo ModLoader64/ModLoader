@@ -1,0 +1,90 @@
+name: Build ModLoader SDK and Client
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Cache Git Submodules
+        uses: actions/cache@v4
+        with:
+          path: |
+            .git
+          key: ${{ runner.os }}-git-submodules-${{ hashFiles('.gitmodules', '**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-git-submodules-
+
+      - name: Checkout Repository & Submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Ensure CMake & Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Install Clang (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang ninja-build
+
+      - name: Install Clang (Windows)
+        if: runner.os == 'Windows'
+        run: choco install llvm -y
+        shell: pwsh
+
+      - name: Build SDK
+        run: |
+          mkdir build-sdk
+          cd build-sdk
+          cmake -G Ninja ../sdk --log-level=STATUS
+          cmake --build .
+        shell: pwsh
+
+      - name: Build Client
+        run: |
+          # Format path appropriately depending on shell/OS
+          if ("${{ runner.os }}" -eq "Windows") {
+            $sdkPath = "$env:GITHUB_WORKSPACE/build-sdk/dist" -replace '\\', '/'
+          } else {
+            $sdkPath = "$env:GITHUB_WORKSPACE/build-sdk/dist"
+          }
+          
+          mkdir build-client
+          cd build-client
+          cmake -G Ninja .. "-DMODLOADER_SDK=$sdkPath" --log-level=STATUS
+          cmake --build .
+        shell: pwsh
+
+      - name: Upload SDK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: modloader-sdk-${{ matrix.os }}
+          path: build-sdk/dist
+
+      - name: Upload Client Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: modloader-client-${{ matrix.os }}
+          path: build-client/dist
