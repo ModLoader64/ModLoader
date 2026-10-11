@@ -123,7 +123,10 @@ bool ModLoader::Runtime::Platform_Clock_Event(u32 clock, u32* event) {
 }
 
 void ModLoader::Runtime::Platform_Event(ModLoader_Event_Phase phase, u32 event, const void* record, u64 size) {
-    if (event == MODLOADER_EVENT_REFRESH && size >= sizeof(ModLoader_N64_Vi_Record)) {
+    if (event == MODLOADER_EVENT_N64_START) {
+        sEvents.start.Call(phase);
+    }
+    else if (event == MODLOADER_EVENT_REFRESH && size >= sizeof(ModLoader_N64_Vi_Record)) {
         ModLoader_N64_Vi_Record vi_record;
         N64::Vertical_Interrupt vi;
 
