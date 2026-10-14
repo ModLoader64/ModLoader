@@ -246,17 +246,18 @@ bool Presenter::Present() {
     Take_Frame();
     ui->Update_Textures();
     if (renderer->Begin(*surface, width, height)) {
-        if (shown != nullptr) {
+        top = std::min(ui->Top_Inset(), height);
+        outputWidth = width;
+        outputHeight = height - top;
+        if (shown != nullptr && height > top) {
             image.texture = shown;
             image.filter = filter;
             image.readyValue = std::exchange(shownReady, 0);
-            top = ui->Top_Inset();
-            top = top < height ? top : 0;
+            image.viewport[1] = top;
+            image.viewport[2] = width;
+            image.viewport[3] = height - top;
             Renderer_Place_Image(scaling, width, height - top, sourceWidth, sourceHeight, aspect, image.destination);
-            image.destination[1] += static_cast<f32>(top);
             renderer->Draw_Image(image);
-            outputWidth = width;
-            outputHeight = height - top;
         }
         Ui_Windows_Draw_Overlays(*renderer);
         ui->Draw();
@@ -356,6 +357,9 @@ bool Presenter::Pump() {
             }
             break;
         case SDL_EVENT_KEY_DOWN:
+            if (SDL_GetKeyboardFocus() != window || Ui_Windows_Wants_Keyboard()) {
+                break;
+            }
             if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F5) {
                 requested = Presenter_Request::Save_State;
             }

@@ -79,7 +79,6 @@ void Ui::Frame(const std::function<void()>& build) {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
     viewport = ImGui::GetMainViewport();
-    topInset = static_cast<u32>((viewport->WorkPos.y - viewport->Pos.y) * ImGui::GetIO().DisplayFramebufferScale.y + 0.5f);
     ImGui::DockSpaceOverViewport(0, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
 
     if (demo) {
@@ -90,6 +89,7 @@ void Ui::Frame(const std::function<void()>& build) {
         build();
     }
 
+    topInset = static_cast<u32>(static_cast<ImGuiViewportP*>(viewport)->BuildWorkInsetMin.y * ImGui::GetIO().DisplayFramebufferScale.y + 0.5f);
     ImGui::Render();
     ImGui::UpdatePlatformWindows();
     wantKeyboard = ImGui::GetIO().WantCaptureKeyboard;

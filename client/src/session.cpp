@@ -4,6 +4,9 @@
 #include "settings.h"
 #include "ui/toolbar.h"
 
+#include <chrono>
+#include <thread>
+
 namespace {
 
 constexpr std::pair<std::string_view, Hotkey> gHotkeys[] = {
@@ -31,8 +34,10 @@ std::string Aot_Compiler_Path() {
 Game_Session::Game_Session(const Run_Options& run_options) : options(run_options),
 clientSettings([this](Settings_Group&, const std::string& key, const std::string& value) {
         Bind_Hotkey(key, value);
+        unthrottledSpeedPercent = clientSettings.Unthrottled_Speed_Percent();
         presenter->Set_Picture(clientSettings.Scaling(), clientSettings.Filter());
         presenter->Set_Theme(clientSettings.Theme());
+        presenter->Set_Background_Controller_Input(clientSettings.Get("input.background_controller") == "true");
     }) {
 }
 
@@ -100,6 +105,7 @@ void Game_Session::Build_Ui() {
         pauseRequested,
         clientSettings.Get("hotkeys.pause"),
         clientSettings.Get("hotkeys.restart"),
+        clientSettings.Get("hotkeys.unthrottled"),
         runtime->textures,
         Has_Savestates(),
     };
@@ -185,6 +191,36 @@ void Game_Session::On_Event(u32 event, u64 time, const void* data, u64 size) {
     else if (pauseRequested && !quitRequested && !loadPending) {
         Hold();
     }
+    Pace_Unthrottled(time);
+}
+
+void Game_Session::Pace_Unthrottled(u64 time) {
+    u32 speed_percent = unthrottledSpeedPercent;
+    if (speedLimited || speed_percent == 0 || quitRequested) {
+        paceWallTime = 0;
+        return;
+    }
+
+    u64 wall_time = Time_Monotonic_Microseconds();
+    if (paceWallTime == 0 || paceSpeedPercent != speed_percent || time <= paceEmulationTime) {
+        paceEmulationTime = time;
+        paceWallTime = wall_time;
+        paceSpeedPercent = speed_percent;
+        return;
+    }
+
+    u64 interval = (time - paceEmulationTime) / (static_cast<u64>(speed_percent) * 10);
+    u64 deadline = paceWallTime + interval;
+    while (wall_time < deadline && !quitRequested && !pauseRequested && !restartRequested && !speedLimited && !settingsPending && unthrottledSpeedPercent == speed_percent) {
+        u64 remaining = deadline - wall_time;
+        u64 sleep_time = remaining < 10000 ? remaining : 10000;
+        std::this_thread::sleep_for(std::chrono::microseconds(sleep_time));
+        wall_time = Time_Monotonic_Microseconds();
+    }
+
+    paceEmulationTime = time;
+    // drop missed time after a stall
+    paceWallTime = wall_time > deadline + interval ? wall_time : deadline;
 }
 
 void Game_Session::Take_Requests() {
@@ -201,6 +237,9 @@ void Game_Session::Take_Requests() {
     }
     else if (request == Presenter_Request::Load_State) {
         loadPending = platform->Load_State(*adapter, handle);
+        if (loadPending) {
+            paceWallTime = 0;
+        }
     }
     else {
         platform->Retry_Save_State(*adapter, handle);
@@ -212,6 +251,7 @@ bool Game_Session::Has_Savestates() const {
 }
 
 void Game_Session::Hold() {
+    paceWallTime = 0;
     loadPending = false;
     runtime->Hold(MODLOADER_PAUSE_ASKED, [this] {
         Take_Requests();
@@ -224,6 +264,7 @@ void Game_Session::Hold() {
 }
 
 void Game_Session::Restart() {
+    paceWallTime = 0;
     runtime->Notify(MODLOADER_EVENT_RESTART);
     if (adapter->reset == nullptr || adapter->reset(handle) != 0) {
         Log_Warning("session", "adapter cannot restart the game");
@@ -269,9 +310,12 @@ s32 Game_Session::Run() {
         return 1;
     }
 
+    presenter->Set_Background_Controller_Input(clientSettings.Get("input.background_controller") == "true");
+
     for (const auto& [name, hotkey] : gHotkeys) {
         presenter->Bind_Hotkey(hotkey, clientSettings.Get(name));
     }
+    unthrottledSpeedPercent = clientSettings.Unthrottled_Speed_Percent();
 
     if (!Start_Adapter(lobby_name) || !Start_Runtime(nickname, lobby_name)) {
         return 1;

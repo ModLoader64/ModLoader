@@ -286,7 +286,8 @@ bool Vulkan_Renderer::Begin(Renderer_Surface& drawn, u32& out_width, u32& out_he
 void Vulkan_Renderer::Draw_Image(const Renderer_Image& image) {
     VkCommandBuffer commands = current->frames[current->frameIndex].commands;
     Vulkan_Texture* texture = static_cast<Vulkan_Texture*>(image.texture);
-    VkRect2D scissor = { { 0, 0 }, current->extent };
+    VkRect2D scissor = { { static_cast<s32>(image.viewport[0]), static_cast<s32>(image.viewport[1]) }, { image.viewport[2], image.viewport[3] } };
+    VkViewport viewport = { static_cast<f32>(image.viewport[0]), static_cast<f32>(image.viewport[1]), static_cast<f32>(image.viewport[2]), static_cast<f32>(image.viewport[3]), 0.0f, 1.0f };
     Image_Constants constants;
 
     if (texture == nullptr || !texture->written || image.destination[2] <= 0.0f || image.destination[3] <= 0.0f) {
@@ -315,12 +316,16 @@ void Vulkan_Renderer::Draw_Image(const Renderer_Image& image) {
     }
 
     Ensure_Rendering();
-    constants = Image_Constants_For(image, current->extent.width, current->extent.height);
+    constants = Image_Constants_For(image, image.viewport[2], image.viewport[3]);
     vk.vkCmdBindPipeline(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, currentPipelines->image);
     vk.vkCmdBindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &texture->descriptor, 0, nullptr);
     vk.vkCmdPushConstants(commands, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(constants), &constants);
+    vk.vkCmdSetViewport(commands, 0, 1, &viewport);
     vk.vkCmdSetScissor(commands, 0, 1, &scissor);
     vk.vkCmdDraw(commands, 4, 1, 0, 0);
+
+    viewport = { 0.0f, 0.0f, static_cast<f32>(current->extent.width), static_cast<f32>(current->extent.height), 0.0f, 1.0f };
+    vk.vkCmdSetViewport(commands, 0, 1, &viewport);
 }
 
 void Vulkan_Renderer::Draw_Mesh(const Renderer_Mesh& mesh) {

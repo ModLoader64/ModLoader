@@ -3,11 +3,6 @@
 namespace {
 
 constexpr ModLoader_Setting gClientSettings[] = {
-    { "network.server_address", "Server address", "Network", "Hostname or IP address", nullptr, "", MODLOADER_SETTING_TEXT, MODLOADER_SETTING_RESTART, 0.0, 0.0 },
-    { "network.server_port", "Server port", "Network", "Port", nullptr, "0", MODLOADER_SETTING_INT, MODLOADER_SETTING_RESTART, 0.0, 65535.0 },
-    { "network.nickname", "Nickname", "Network", "What you call yourself", nullptr, "", MODLOADER_SETTING_TEXT, MODLOADER_SETTING_RESTART, 0.0, 0.0 },
-    { "network.lobby", "Lobby", "Network", "The lobby to join ", nullptr, "", MODLOADER_SETTING_TEXT, MODLOADER_SETTING_RESTART, 0.0, 0.0 },
-    { "network.password", "Lobby password", "Network", "", nullptr, "", MODLOADER_SETTING_TEXT, MODLOADER_SETTING_RESTART, 0.0, 0.0 },
     { "scaling",
       "Scaling",
       "Video",
@@ -30,6 +25,7 @@ constexpr ModLoader_Setting gClientSettings[] = {
       0.0,
       0.0 },
     { "theme", "UI theme", "Video", "The colors of ModLoader's ImGui windows and menus", "dark\tDark\nlight\tLight", "dark", MODLOADER_SETTING_CHOICE, 0, 0.0, 0.0 },
+    { "input.background_controller", "Background controller input", "Input", "Accept controller input while the window is unfocused", nullptr, "false", MODLOADER_SETTING_BOOL, 0, 0.0, 0.0 },
     { "wasm_mode",
       "Plugin execution",
       "ModLoader",
@@ -51,7 +47,8 @@ constexpr ModLoader_Setting gClientSettings[] = {
       0,
       0.0,
       0.0 },
-    { "hotkeys.unthrottled", "Unthrottled", "ModLoader/Hotkeys", "Turns the speed limit off, or back on", nullptr, "", MODLOADER_SETTING_BINDING, 0, 0.0, 0.0 },
+    { "emulation.unthrottled_speed_percent", "Unthrottled speed limit (%)", nullptr, "0: unlimited; 200: twice normal speed.", nullptr, "0", MODLOADER_SETTING_INT, 0, 0.0, 1000.0 },
+    { "hotkeys.unthrottled", "Unthrottled", "ModLoader/Hotkeys", "Toggles normal speed and unthrottled mode", nullptr, "key:Tab", MODLOADER_SETTING_BINDING, 0, 0.0, 0.0 },
 };
 
 } // namespace
@@ -81,6 +78,10 @@ Ui_Theme Client_Settings::Theme() const {
 
 u16 Client_Settings::Server_Port() const {
     return static_cast<u16>(group->Get_Number("network.server_port"));
+}
+
+u32 Client_Settings::Unthrottled_Speed_Percent() const {
+    return static_cast<u32>(group->Get_Number("emulation.unthrottled_speed_percent"));
 }
 
 Module_Execution Client_Settings::Execution_Mode() const {

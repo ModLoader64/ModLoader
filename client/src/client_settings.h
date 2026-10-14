@@ -14,6 +14,7 @@ public:
     Renderer_Filter Filter() const;
     Ui_Theme Theme() const;
     u16 Server_Port() const;
+    u32 Unthrottled_Speed_Percent() const;
     Module_Execution Execution_Mode() const;
 
 private:

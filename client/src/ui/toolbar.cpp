@@ -221,13 +221,13 @@ void Draw_Text(Settings_Group& group, const Setting& setting) {
     ImGui::TextUnformatted(setting.label.c_str());
 }
 
-void Draw_Setting(Settings_Group& group, const Setting& setting) {
+void Draw_Setting(Settings_Group& group, const Setting& setting, const char* shortcut = nullptr) {
     ImGui::PushID(&group);
     ImGui::PushID(setting.key.c_str());
     ImGui::BeginDisabled((setting.flags & MODLOADER_SETTING_DISABLED) != 0);
     switch (setting.type) {
     case MODLOADER_SETTING_BOOL:
-        if (ImGui::MenuItem(setting.label.c_str(), nullptr, setting.value == "true")) {
+        if (ImGui::MenuItem(setting.label.c_str(), shortcut, setting.value == "true")) {
             sChanges.push_back({ &group, setting.key, setting.value == "true" ? "false" : "true" });
         }
         Draw_Tooltip(setting);
@@ -251,6 +251,20 @@ void Draw_Setting(Settings_Group& group, const Setting& setting) {
     ImGui::PopID();
 }
 
+void Draw_Unthrottled_Limit() {
+    for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
+        if (group->Name() != "client_settings") {
+            continue;
+        }
+        for (const Setting& setting : group->Entries()) {
+            if (setting.key == "emulation.unthrottled_speed_percent") {
+                Draw_Setting(*group, setting);
+                return;
+            }
+        }
+    }
+}
+
 bool Page_Within(std::string_view page, std::string_view path) {
     return page.starts_with(path) && (page.size() == path.size() || page[path.size()] == '/');
 }
@@ -266,9 +280,10 @@ bool Page_Has(std::string_view path) {
     return false;
 }
 
-void Draw_Page(const std::string& path) {
+void Draw_Page(const std::string& path, const Toolbar_State& state) {
     std::vector<std::string> children;
     std::string_view child;
+    std::string shortcut;
 
     ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
     for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
@@ -278,7 +293,11 @@ void Draw_Page(const std::string& path) {
             }
 
             if (setting.page == path) {
-                Draw_Setting(*group, setting);
+                bool speed_limit = (setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0;
+                Draw_Setting(*group, setting, speed_limit ? Shortcut(state.unthrottledBinding, shortcut) : nullptr);
+                if (speed_limit) {
+                    Draw_Unthrottled_Limit();
+                }
                 continue;
             }
 
@@ -293,7 +312,7 @@ void Draw_Page(const std::string& path) {
     ImGui::PopItemFlag();
     for (const std::string& name : children) {
         if (ImGui::BeginMenu(name.c_str())) {
-            Draw_Page(path + "/" + name);
+            Draw_Page(path + "/" + name, state);
             ImGui::EndMenu();
         }
     }
@@ -341,7 +360,7 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state) {
 
             if (Page_Has("ModLoader")) {
                 ImGui::Separator();
-                Draw_Page("ModLoader");
+                Draw_Page("ModLoader", state);
             }
 
             ImGui::Separator();
@@ -354,7 +373,7 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state) {
             bool settings = Page_Has(menu);
 
             if ((video || settings) && ImGui::BeginMenu(menu)) {
-                Draw_Page(menu);
+                Draw_Page(menu, state);
                 if (video) {
                     if (settings) {
                         ImGui::Separator();
@@ -367,7 +386,7 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state) {
 
         for (const std::string& menu : Other_Menus()) {
             if (ImGui::BeginMenu(menu.c_str())) {
-                Draw_Page(menu);
+                Draw_Page(menu, state);
                 ImGui::EndMenu();
             }
         }

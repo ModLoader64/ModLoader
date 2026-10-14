@@ -18,6 +18,7 @@ struct Toolbar_State {
     bool paused;
     std::string pauseBinding;
     std::string restartBinding;
+    std::string unthrottledBinding;
     Texture_Manager& textures;
     bool savestates = false;
 };

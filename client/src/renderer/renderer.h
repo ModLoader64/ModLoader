@@ -72,7 +72,8 @@ struct Renderer_Mesh {
 
 struct Renderer_Image {
     Renderer_Texture* texture = nullptr;
-    f32 destination[4] = {}; // x, y, width, height
+    u32 viewport[4] = {}; // x, y, width, height
+    f32 destination[4] = {}; // relative to viewport
     Renderer_Filter filter = Renderer_Filter_Bilinear;
     u64 readyValue = 0;
 };

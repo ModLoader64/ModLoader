@@ -36,6 +36,7 @@ void Game_Session::Describe_Adapter_Settings(bool bind) {
             Bind_Control(setting.key, setting.value);
         }
         if ((setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0) {
+            speedLimited = std::string_view(setting.value) == "true";
             presenter->Set_Audio_Speed_Limit(std::string_view(setting.value) == "true");
         }
     }

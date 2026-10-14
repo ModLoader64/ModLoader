@@ -56,6 +56,7 @@ private:
     void Bind_Hotkey(const std::string& key, const std::string& value);
     void Handle_Hotkeys(u32 pressed);
     void Toggle_Speed_Limit();
+    void Pace_Unthrottled(u64 time);
     bool Has_Savestates() const;
     void Load_Adapter_Settings();
     void Describe_Adapter_Settings(bool bind);
@@ -84,6 +85,11 @@ private:
     std::atomic<bool> pauseRequested = false;
     std::atomic<bool> restartRequested = false;
     bool loadPending = false;
+    bool speedLimited = true;
+    std::atomic<u32> unthrottledSpeedPercent = 0;
+    u64 paceEmulationTime = 0;
+    u64 paceWallTime = 0;
+    u32 paceSpeedPercent = 0;
     s32 runResult = 0;
     u8* imageBase = nullptr;
     u64 imageCapacity = 0;

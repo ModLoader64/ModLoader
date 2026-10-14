@@ -33,6 +33,11 @@ void Presenter::Set_Controls(const Platform& controlled) {
     controls.assign(controlled.controls.size(), {});
 }
 
+void Presenter::Set_Background_Controller_Input(bool enabled) {
+    backgroundControllerInput = enabled;
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, enabled ? "1" : "0");
+}
+
 std::vector<Presenter::Bound_Input> Presenter::Parse_Binding(std::string_view binding) {
     std::vector<Bound_Input> inputs;
 
@@ -76,6 +81,10 @@ void Presenter::Bind_Hotkey(Hotkey hotkey, std::string_view binding) {
 f32 Presenter::Input_Value(const Bound_Input& input, const bool* keys, bool keyboard) const {
     f32 value;
 
+    if (input.kind != Input_Kind::Key && !backgroundControllerInput && SDL_GetKeyboardFocus() != window) {
+        return 0.0f;
+    }
+
     switch (input.kind) {
     case Input_Kind::Key:
         return keyboard && keys[input.code] ? 1.0f : 0.0f;
@@ -116,6 +125,7 @@ void Presenter::Update_Input() {
 void Presenter::Hotkey_Event(const SDL_Event& event) {
     bool pressed;
     bool past;
+    bool controller = backgroundControllerInput || SDL_GetKeyboardFocus() == window;
 
     for (u32 hotkey = 0; hotkey < static_cast<u32>(Hotkey::Count); hotkey++) {
         pressed = false;
@@ -124,11 +134,11 @@ void Presenter::Hotkey_Event(const SDL_Event& event) {
                 pressed = pressed || (!event.key.repeat && input.code == event.key.scancode);
             }
             else if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && input.kind == Input_Kind::Pad) {
-                pressed = pressed || input.code == event.gbutton.button;
+                pressed = pressed || (controller && input.code == event.gbutton.button);
             }
             else if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && input.kind == Input_Kind::Axis && input.code == event.gaxis.axis) {
                 past = event.gaxis.value * input.sign > 16384.0f;
-                pressed = pressed || (past && !hotkeyAxisPast[hotkey]);
+                pressed = pressed || (controller && past && !hotkeyAxisPast[hotkey]);
                 hotkeyAxisPast[hotkey] = past;
             }
         }

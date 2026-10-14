@@ -255,7 +255,10 @@ bool Settings_Group::Set(std::string_view key, std::string_view value) {
 std::optional<std::string> Settings_Group::Get(std::string_view key) const {
     std::lock_guard lock(sLock);
     const Setting* setting = Find(key);
-    return setting != nullptr ? std::optional(setting->value) : std::nullopt;
+    if (setting != nullptr) {
+        return setting->value;
+    }
+    return document != nullptr ? Stored_Text(document.get(), key) : std::nullopt;
 }
 
 bool Settings_Group::Get_Bool(std::string_view key) const {

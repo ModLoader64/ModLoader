@@ -58,6 +58,7 @@ public:
     }
 
     void Set_Controls(const Platform& platform);
+    void Set_Background_Controller_Input(bool enabled);
     void Bind(u32 control, std::string_view binding);
     void Bind_Hotkey(Hotkey hotkey, std::string_view binding);
 
@@ -162,6 +163,7 @@ private:
     bool audioLimited = true;
 
     SDL_Gamepad* gamepad = nullptr;
+    bool backgroundControllerInput = false;
     std::atomic<s32> rumbleRequested = -1;
     std::vector<std::vector<Bound_Input>> controls;
     std::vector<Bound_Input> hotkeys[static_cast<u32>(Hotkey::Count)];
