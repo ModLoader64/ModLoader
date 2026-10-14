@@ -93,6 +93,7 @@ void Ui::Frame(const std::function<void()>& build) {
     ImGui::Render();
     ImGui::UpdatePlatformWindows();
     wantKeyboard = ImGui::GetIO().WantCaptureKeyboard;
+    wantMouse = ImGui::GetIO().WantCaptureMouse;
     built = true;
 }
 
@@ -122,6 +123,20 @@ bool Ui::Process_Event(const SDL_Event& event) {
         return !ImGui::GetIO().WantCaptureMouse;
     default:
         return true;
+    }
+}
+
+void Ui::Set_Mouse_Captured(bool captured) {
+    ImGui::SetCurrentContext(context);
+    if (captured) {
+        ImGui::SetWindowFocus(nullptr);
+        ImGui::ClearActiveID();
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        wantKeyboard = false;
+        wantMouse = false;
+    }
+    else {
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
     }
 }
 

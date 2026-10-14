@@ -47,6 +47,10 @@ bool Declare(const Setting& setting) {
     return Detail::Config_Declare(Detail::gModuleFolder, setting);
 }
 
+bool Draw(std::string_view key) {
+    return Detail::Config_Draw(Detail::gModuleFolder, key);
+}
+
 std::optional<std::string> Get(std::string_view key) {
     return Detail::Config_Get(Detail::gModuleFolder, key);
 }

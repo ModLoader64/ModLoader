@@ -1,9 +1,15 @@
 #pragma once
 
 #include <modloader/types.h>
+#include <modloader/detail/input.h>
 #include <modloader_module.h>
 
 extern "C" {
+
+MODLOADER_IMPORT("input_set_mouse_locked") void ModLoader_Host_Input_Set_Mouse_Locked(u32 locked);
+MODLOADER_IMPORT("input_toggle_mouse_lock") void ModLoader_Host_Input_Toggle_Mouse_Lock();
+MODLOADER_IMPORT("input_read") u32 ModLoader_Host_Input_Read(ModLoader_Input_Frame* frame, u64 size);
+MODLOADER_IMPORT("input_binding_parse") u64 ModLoader_Host_Input_Binding_Parse(const char* text, u64 length, ModLoader_Input_Binding* output, u64 capacity);
 
 MODLOADER_IMPORT("log_source") void ModLoader_Host_Log_Source(u32 level, const char* source, u64 source_length, const char* text, u64 length);
 MODLOADER_IMPORT("platform_describe") void ModLoader_Host_Platform_Describe(ModLoader_Platform_Description* description, u64 size);
@@ -68,6 +74,7 @@ MODLOADER_IMPORT("savestate_unblock") void ModLoader_Host_Savestate_Unblock(u64 
 MODLOADER_IMPORT("setting_declare") s32 ModLoader_Host_Setting_Declare(const char* folder, u64 length, const ModLoader_Module_Setting* setting);
 MODLOADER_IMPORT("setting_get") s64 ModLoader_Host_Setting_Get(const char* folder, u64 length, const char* key, char* buffer, u64 capacity);
 MODLOADER_IMPORT("setting_set") s32 ModLoader_Host_Setting_Set(const char* folder, u64 length, const char* key, const char* value);
+MODLOADER_IMPORT("setting_draw") s32 ModLoader_Host_Setting_Draw(const char* folder, u64 length, const char* key);
 MODLOADER_IMPORT("emulation_pause") void ModLoader_Host_Emulation_Pause(u32 paused);
 MODLOADER_IMPORT("emulation_paused") u32 ModLoader_Host_Emulation_Paused();
 MODLOADER_IMPORT("emulation_restart") void ModLoader_Host_Emulation_Restart();

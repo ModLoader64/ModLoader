@@ -15,6 +15,7 @@ public:
     Ui_Theme Theme() const;
     u16 Server_Port() const;
     u32 Unthrottled_Speed_Percent() const;
+    f32 Input_Dead_Zone() const;
     Module_Execution Execution_Mode() const;
 
 private:

@@ -44,6 +44,7 @@ bool Start_Wamr(Platform& platform) {
     Net_Register_Natives();
     Lobby_Register_Natives();
     Module_Settings_Register_Natives();
+    Module_Input_Register_Natives();
     Library_Register_Natives();
     Textures_Register_Natives();
     Breakpoints_Register_Natives();
@@ -327,7 +328,7 @@ void Runtime::Hold(u32 reason, const std::function<bool()>& held) {
     Deliver(MODLOADER_EVENT_PAUSE, &record, sizeof(record));
     Flush_Dirty_Pages();
 
-    while (held() && !Host().Quitting()) {
+    while (held() && !Host().Quitting() && !Host().Restarting()) {
         Time_Sleep_Milliseconds(16);
         Notify(MODLOADER_EVENT_PAUSED);
     }

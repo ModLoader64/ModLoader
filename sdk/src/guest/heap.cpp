@@ -698,3 +698,19 @@ u32 ModLoader::Guest::Heap::Block_Count() const {
     return blockCount;
 }
 
+std::vector<ModLoader::Guest::Heap::Region> ModLoader::Guest::Heap::Regions() const {
+    std::vector<Region> regions;
+
+    for (u32 index = first; index != 0; index = blocks[index - 1].next) {
+        const Block& block = blocks[index - 1];
+        Handle handle = 0;
+        if ((block.flags & Block_Used) != 0) {
+            handle = index | ((block.generation & gGenerationMask) << gIndexBits);
+        }
+
+        regions.push_back({base + block.offset, block.size, handle, (block.flags & Block_Pinned) != 0});
+    }
+
+    return regions;
+}
+

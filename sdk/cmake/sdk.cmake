@@ -19,7 +19,8 @@ function(_modloader_sdk_interface name)
     target_include_directories(${name} INTERFACE
         "${MODLOADER_SDK_DIR}/include"
         "${MODLOADER_ABI_ROOT}/include"
-        "${MODLOADER_SDK_DIR}/../third_party/imgui")
+        "${MODLOADER_SDK_DIR}/../third_party/imgui"
+        "${MODLOADER_SDK_DIR}/../third_party/sdl/include")
     if(EXISTS "${MODLOADER_ABI_ROOT}/include/${MODLOADER_PLATFORM}")
         target_include_directories(${name} INTERFACE "${MODLOADER_ABI_ROOT}/include/${MODLOADER_PLATFORM}")
     endif()

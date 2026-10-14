@@ -169,7 +169,7 @@ void Runtime::Breakpoint(const ModLoader_Break& hit, void* state, u64 size) {
     pausedProcessor = hit.processor;
     pausedStateSize = size;
     paused = pause;
-    if (paused) {
+    if (paused && !Host().Restarting()) {
         Hold(MODLOADER_PAUSE_BREAKPOINT, [this] {
             return paused;
         });

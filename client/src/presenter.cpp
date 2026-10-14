@@ -103,10 +103,11 @@ void Presenter::Release_Frames() {
     }
 }
 
-void Presenter::Wake() {
+void Presenter::Wake(Wake_Action action) {
     SDL_Event event = {};
 
     event.type = wakeEvent;
+    event.user.code = static_cast<s32>(action);
     SDL_PushEvent(&event);
 }
 
@@ -327,14 +328,22 @@ bool Presenter::Pump() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-        if (Toolbar_Capture_Event(event) || Ui_Windows_Event(event)) {
+        Input_Event(event);
+        if (Toolbar_Capture_Event(event)) {
+            continue;
+        }
+
+        Hotkey_Event(event, true);
+        if (Ui_Windows_Event(event)) {
             continue;
         }
 
         if (ui->Process_Event(event)) {
-            Ui_Windows_Main_Event(event);
+            if (!mouseCaptured) {
+                Ui_Windows_Main_Event(event);
+            }
         }
-        else if (event.type == SDL_EVENT_KEY_DOWN) {
+        else if (event.type == SDL_EVENT_KEY_DOWN && !mouseCaptured) {
             continue;
         }
 
@@ -348,16 +357,18 @@ bool Presenter::Pump() {
         case SDL_EVENT_GAMEPAD_ADDED:
             if (gamepad == nullptr) {
                 gamepad = SDL_OpenGamepad(event.gdevice.which);
+                Enable_Gyro();
             }
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
             if (gamepad != nullptr && SDL_GetGamepadID(gamepad) == event.gdevice.which) {
                 SDL_CloseGamepad(gamepad);
                 gamepad = nullptr;
+                Enable_Gyro();
             }
             break;
         case SDL_EVENT_KEY_DOWN:
-            if (SDL_GetKeyboardFocus() != window || Ui_Windows_Wants_Keyboard()) {
+            if (SDL_GetKeyboardFocus() != window || (!mouseCaptured && Ui_Windows_Wants_Keyboard())) {
                 break;
             }
             if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F5) {
@@ -366,11 +377,17 @@ bool Presenter::Pump() {
             else if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F7) {
                 requested = Presenter_Request::Load_State;
             }
-            Hotkey_Event(event);
+            Hotkey_Event(event, false);
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            if (!mouseCaptured && (ui->Wants_Mouse() || Ui_Windows_Wants_Mouse())) {
+                break;
+            }
+            Hotkey_Event(event, false);
             break;
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
         case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-            Hotkey_Event(event);
+            Hotkey_Event(event, false);
             break;
         default:
             break;

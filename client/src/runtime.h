@@ -13,6 +13,8 @@
 #include "wasm_export.h"
 #include <unordered_map>
 
+struct ModLoader_Input_Frame;
+
 class Runtime_Host {
 public:
     virtual void Invalidate_Code(u32, u64, u64) {}
@@ -29,6 +31,16 @@ public:
         return MODLOADER_TEXTURE_UNSUPPORTED;
     }
 
+    virtual void Set_Mouse_Locked(bool) {
+    }
+
+    virtual void Toggle_Mouse_Lock() {
+    }
+
+    virtual bool Read_Input(ModLoader_Input_Frame&) {
+        return false;
+    }
+
     virtual void Request_Quit() {}
     virtual void Set_Breakpoints(std::span<const ModLoader_Breakpoint>, u32) {}
 
@@ -37,6 +49,10 @@ public:
     }
 
     virtual bool Quitting() const {
+        return false;
+    }
+
+    virtual bool Restarting() const {
         return false;
     }
 

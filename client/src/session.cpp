@@ -13,6 +13,7 @@ constexpr std::pair<std::string_view, Hotkey> gHotkeys[] = {
     { "hotkeys.pause", Hotkey::Pause },
     { "hotkeys.restart", Hotkey::Restart },
     { "hotkeys.unthrottled", Hotkey::Unthrottled },
+    { "hotkeys.mouse_capture", Hotkey::Mouse_Capture },
 };
 
 } // namespace
@@ -38,6 +39,7 @@ clientSettings([this](Settings_Group&, const std::string& key, const std::string
         presenter->Set_Picture(clientSettings.Scaling(), clientSettings.Filter());
         presenter->Set_Theme(clientSettings.Theme());
         presenter->Set_Background_Controller_Input(clientSettings.Get("input.background_controller") == "true");
+        presenter->Set_Input_Dead_Zone(clientSettings.Input_Dead_Zone());
     }) {
 }
 
@@ -54,6 +56,18 @@ Game_Session::~Game_Session() {
     runtime.reset();
     presenter.reset();
     library.Close();
+}
+
+void Game_Session::Set_Mouse_Locked(bool locked) {
+    presenter->Set_Mouse_Locked(locked);
+}
+
+void Game_Session::Toggle_Mouse_Lock() {
+    presenter->Toggle_Mouse_Lock();
+}
+
+bool Game_Session::Read_Input(ModLoader_Input_Frame& frame) {
+    return presenter->Read_Input(frame);
 }
 
 void Game_Session::Request_Quit() {
@@ -106,8 +120,10 @@ void Game_Session::Build_Ui() {
         clientSettings.Get("hotkeys.pause"),
         clientSettings.Get("hotkeys.restart"),
         clientSettings.Get("hotkeys.unthrottled"),
+        clientSettings.Get("hotkeys.mouse_capture"),
         runtime->textures,
         Has_Savestates(),
+        presenter->Mouse_Captured(),
     };
 
     switch (Toolbar_Build(state)) {
@@ -116,6 +132,9 @@ void Game_Session::Build_Ui() {
         break;
     case Toolbar_Action_Restart:
         Restart_Emulation();
+        break;
+    case Toolbar_Action_Mouse_Capture:
+        presenter->Toggle_Mouse_Lock();
         break;
     case Toolbar_Action_Save_State:
         presenter->Post_Request(Presenter_Request::Save_State);
@@ -177,6 +196,9 @@ void Game_Session::Toggle_Speed_Limit() {
 }
 
 void Game_Session::On_Event(u32 event, u64 time, const void* data, u64 size) {
+    if (event == MODLOADER_EVENT_RESET) {
+        resetPending = false;
+    }
     runtime->Event(event, time, data, size);
     if (event != MODLOADER_EVENT_REFRESH) {
         return;
@@ -255,7 +277,7 @@ void Game_Session::Hold() {
     loadPending = false;
     runtime->Hold(MODLOADER_PAUSE_ASKED, [this] {
         Take_Requests();
-        return pauseRequested && !restartRequested && !loadPending;
+        return pauseRequested && !loadPending;
     });
 
     if (restartRequested.exchange(false)) {
@@ -264,9 +286,14 @@ void Game_Session::Hold() {
 }
 
 void Game_Session::Restart() {
+    if (resetPending) {
+        return;
+    }
+    resetPending = true;
     paceWallTime = 0;
     runtime->Notify(MODLOADER_EVENT_RESTART);
     if (adapter->reset == nullptr || adapter->reset(handle) != 0) {
+        resetPending = false;
         Log_Warning("session", "adapter cannot restart the game");
         return;
     }
@@ -311,6 +338,7 @@ s32 Game_Session::Run() {
     }
 
     presenter->Set_Background_Controller_Input(clientSettings.Get("input.background_controller") == "true");
+    presenter->Set_Input_Dead_Zone(clientSettings.Input_Dead_Zone());
 
     for (const auto& [name, hotkey] : gHotkeys) {
         presenter->Bind_Hotkey(hotkey, clientSettings.Get(name));

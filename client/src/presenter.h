@@ -2,6 +2,7 @@
 
 #include "base.h"
 #include "modloader_video.h"
+#include <modloader/detail/input.h>
 #include "renderer/renderer.h"
 #include "ui/theme.h"
 
@@ -25,10 +26,18 @@ enum class Hotkey : u32 {
     Pause,
     Restart,
     Unthrottled,
+    Mouse_Capture,
     Count,
 };
 
 class Presenter {
+    enum class Wake_Action {
+        None,
+        Lock_Mouse,
+        Unlock_Mouse,
+        Toggle_Mouse_Lock,
+    };
+
 public:
     struct Config {
         std::string title;
@@ -52,6 +61,16 @@ public:
     void Push_Audio(const s16* samples, u32 frame_count, u32 sample_rate);
     void Set_Audio_Speed_Limit(bool enabled);
     bool Poll_Input(u32 port, void* out_state, u64 size) const;
+    bool Read_Input(ModLoader_Input_Frame& frame) const;
+    void Set_Mouse_Locked(bool locked) {
+        Wake(locked ? Wake_Action::Lock_Mouse : Wake_Action::Unlock_Mouse);
+    }
+    void Toggle_Mouse_Lock() {
+        Wake(Wake_Action::Toggle_Mouse_Lock);
+    }
+    bool Mouse_Captured() const {
+        return mouseCaptured;
+    }
     void Output_Size(u32& out_width, u32& out_height) const;
     Presenter_Request Take_Request() {
         return requested.exchange(Presenter_Request::None);
@@ -59,8 +78,13 @@ public:
 
     void Set_Controls(const Platform& platform);
     void Set_Background_Controller_Input(bool enabled);
+    void Set_Input_Dead_Zone(f32 dead_zone) {
+        pendingInput.DeadZone = dead_zone;
+    }
     void Bind(u32 control, std::string_view binding);
     void Bind_Hotkey(Hotkey hotkey, std::string_view binding);
+    using Bound_Input = ModLoader_Input_Binding;
+    static std::vector<Bound_Input> Parse_Binding(std::string_view binding);
 
     u32 Take_Hotkeys() {
         return hotkeysPressed.exchange(0);
@@ -79,23 +103,10 @@ public:
         uiBuild = std::move(build);
     }
 
-    void Wake();
+    void Wake(Wake_Action action = Wake_Action::None);
     void Set_Status(std::string_view text);
 
 private:
-    enum class Input_Kind : u32 {
-        None,
-        Key,
-        Pad,
-        Axis,
-    };
-
-    struct Bound_Input {
-        Input_Kind kind = Input_Kind::None;
-        s32 code = -1; // SDL_Scancode, SDL_GamepadButton or SDL_GamepadAxis
-        f32 sign = 1.0f; // active axis direction
-    };
-
     struct Shared_Import {
         u32 imageId = 0;
         std::unique_ptr<Renderer_Texture> texture;
@@ -116,12 +127,13 @@ private:
     };
 
     Presenter() = default;
-    static std::vector<Bound_Input> Parse_Binding(std::string_view binding);
     static bool Live_Update(void* user, union SDL_Event* event);
     void Start_Audio();
-    f32 Input_Value(const Bound_Input& input, const bool* keys, bool keyboard) const;
+    f32 Input_Value(const Bound_Input& input, const bool* keys, bool focused) const;
     void Update_Input();
-    void Hotkey_Event(const union SDL_Event& event);
+    void Input_Event(const union SDL_Event& event);
+    void Enable_Gyro();
+    void Hotkey_Event(const union SDL_Event& event, bool mouse_capture);
     Renderer_Texture* Shared_Texture(const ModLoader_Gpu_Image& image, u32 width, u32 height);
     void Take_Frame();
     bool Present();
@@ -163,6 +175,8 @@ private:
     bool audioLimited = true;
 
     SDL_Gamepad* gamepad = nullptr;
+    bool mouseLock = false;
+    bool mouseCaptured = false;
     bool backgroundControllerInput = false;
     std::atomic<s32> rumbleRequested = -1;
     std::vector<std::vector<Bound_Input>> controls;
@@ -172,5 +186,8 @@ private:
     const Platform* platform = nullptr;
     mutable std::mutex inputLock;
     std::vector<u8> inputState;
+    ModLoader_Input_Frame rawInput = {};
+    ModLoader_Input_Frame pendingInput = {};
+    u64 gyroTimestamp[SDL_SENSOR_GYRO_R + 1] = {};
     std::atomic<Presenter_Request> requested = Presenter_Request::None;
 };

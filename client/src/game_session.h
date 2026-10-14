@@ -19,6 +19,9 @@ public:
     void Invalidate_Code(u32 space, u64 offset, u64 size) override;
     bool Translate_Address(u32 processor, u64 address, u32& out_space, u64& out_offset) override;
     void Request_Quit() override;
+    bool Read_Input(ModLoader_Input_Frame& frame) override;
+    void Set_Mouse_Locked(bool locked) override;
+    void Toggle_Mouse_Lock() override;
     s64 Platform_Query(u32 query, void* output, u64 capacity) override;
     void Set_Breakpoints(std::span<const ModLoader_Breakpoint> breakpoints, u32 step_processor) override;
 
@@ -28,6 +31,10 @@ public:
 
     bool Quitting() const override {
         return quitRequested;
+    }
+
+    bool Restarting() const override {
+        return restartRequested || resetPending;
     }
 
     s32 Set_Texture_Sources(std::span<const char* const> paths, u32 flags) override;
@@ -84,6 +91,7 @@ private:
     std::atomic<bool> emulationDone = false;
     std::atomic<bool> pauseRequested = false;
     std::atomic<bool> restartRequested = false;
+    bool resetPending = false;
     bool loadPending = false;
     bool speedLimited = true;
     std::atomic<u32> unthrottledSpeedPercent = 0;

@@ -146,6 +146,7 @@ void Tasks_Register_Natives();
 void Breakpoints_Register_Natives();
 void Lobby_Register_Natives();
 void Module_Settings_Register_Natives();
+void Module_Input_Register_Natives();
 void Library_Register_Natives();
 void Files_Create_Folders(const Module& module);
 void Files_Release_Owner(Module& owner);

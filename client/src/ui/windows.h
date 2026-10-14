@@ -19,6 +19,7 @@ void Ui_Windows_Frame_End();
 bool Ui_Windows_Event(const SDL_Event& event);
 void Ui_Windows_Main_Event(const SDL_Event& event);
 bool Ui_Windows_Wants_Keyboard();
+bool Ui_Windows_Wants_Mouse();
 void Ui_Windows_Draw_Overlays(Renderer& renderer);
 void Ui_Windows_Present(Renderer& renderer);
 

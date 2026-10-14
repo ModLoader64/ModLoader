@@ -26,6 +26,7 @@ constexpr ModLoader_Setting gClientSettings[] = {
       0.0 },
     { "theme", "UI theme", "Video", "The colors of ModLoader's ImGui windows and menus", "dark\tDark\nlight\tLight", "dark", MODLOADER_SETTING_CHOICE, 0, 0.0, 0.0 },
     { "input.background_controller", "Background controller input", "Input", "Accept controller input while the window is unfocused", nullptr, "false", MODLOADER_SETTING_BOOL, 0, 0.0, 0.0 },
+    { "input.dead_zone", "Controller dead zone", "Input", "0: no dead zone; 1: ignore axis input", nullptr, "0.18311106", MODLOADER_SETTING_FLOAT, 0, 0.0, 1.0 },
     { "wasm_mode",
       "Plugin execution",
       "ModLoader",
@@ -36,7 +37,8 @@ constexpr ModLoader_Setting gClientSettings[] = {
       MODLOADER_SETTING_RESTART,
       0.0,
       0.0 },
-    { "hotkeys.pause", "Pause", "ModLoader/Hotkeys", "Pauses the game, or lets it go on", nullptr, "", MODLOADER_SETTING_BINDING, 0, 0.0, 0.0 },
+    { "hotkeys.mouse_capture", "Lock/unlock mouse", "Input", "Lock/Unlock the mouse", nullptr, "key:F8", MODLOADER_SETTING_BINDING, 0, 0.0, 0.0 },
+    { "hotkeys.pause", "Pause", "ModLoader/Hotkeys", "Pause/Unpause", nullptr, "", MODLOADER_SETTING_BINDING, 0, 0.0, 0.0 },
     { "hotkeys.restart",
       "Restart",
       "ModLoader/Hotkeys",
@@ -82,6 +84,10 @@ u16 Client_Settings::Server_Port() const {
 
 u32 Client_Settings::Unthrottled_Speed_Percent() const {
     return static_cast<u32>(group->Get_Number("emulation.unthrottled_speed_percent"));
+}
+
+f32 Client_Settings::Input_Dead_Zone() const {
+    return static_cast<f32>(group->Get_Number("input.dead_zone"));
 }
 
 Module_Execution Client_Settings::Execution_Mode() const {

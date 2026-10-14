@@ -5,6 +5,7 @@
 #include <modloader/guest/memory.h>
 #include <modloader/guest/layout.h>
 #include <modloader/event.h>
+#include <modloader/input.h>
 #include <modloader/logger.h>
 #include <modloader/memory.h>
 #include <modloader/guest/machine.h>

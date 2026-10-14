@@ -18,6 +18,7 @@ Promise<std::vector<u8>> File_Read_All_Async(std::string_view folder, std::strin
 Promise<bool> File_Write_All_Async(std::string_view folder, std::string_view path, const void* data, u64 size);
 
 bool Config_Declare(std::string_view folder, const Config::Setting& setting);
+bool Config_Draw(std::string_view folder, std::string_view key);
 std::optional<std::string> Config_Get(std::string_view folder, std::string_view key);
 f64 Config_Get_Float(std::string_view folder, std::string_view key);
 s64 Config_Get_Int(std::string_view folder, std::string_view key);

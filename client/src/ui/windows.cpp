@@ -544,6 +544,7 @@ void Ui_Windows_Frame_Begin() {
 
 void Ui_Windows_Frame_End() {
     bool wants_keyboard = false;
+    bool wants_mouse = false;
 
     if (!gWindows.started) {
         return;
@@ -568,11 +569,16 @@ void Ui_Windows_Frame_End() {
         window.transformed = false;
         window.context->Render();
         gWindows.current = nullptr;
-        wants_keyboard = wants_keyboard || (window.overlay && Text_Focus(window.context));
+        if (window.overlay) {
+            wants_keyboard = wants_keyboard || Text_Focus(window.context);
+            Rml::Element* hover = window.context->GetHoverElement();
+            wants_mouse = wants_mouse || (hover != nullptr && hover->GetTagName() != "body" && hover->GetTagName() != "root");
+        }
     }
 
     Ui_Windows_Work_For(nullptr);
     gWindows.wantsKeyboard = wants_keyboard;
+    gWindows.wantsMouse = wants_mouse;
 }
 
 bool Ui_Windows_Event(const SDL_Event& event) {
@@ -613,6 +619,10 @@ void Ui_Windows_Main_Event(const SDL_Event& event) {
             Queue_Input(window, *input);
         }
     }
+}
+
+bool Ui_Windows_Wants_Mouse() {
+    return gWindows.started && gWindows.wantsMouse;
 }
 
 bool Ui_Windows_Wants_Keyboard() {

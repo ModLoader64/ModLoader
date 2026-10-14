@@ -18,6 +18,7 @@ enum class Type : u32 {
     Float = MODLOADER_SETTING_FLOAT,
     Choice = MODLOADER_SETTING_CHOICE, // one of choices: lines of "value" or "value\tLabel"
     Text = MODLOADER_SETTING_TEXT,
+    Binding = MODLOADER_SETTING_BINDING,
 };
 
 struct Setting {
@@ -33,6 +34,7 @@ struct Setting {
 };
 
 bool Declare(const Setting& setting);
+bool Draw(std::string_view key);
 // nullopt for an unknown key
 std::optional<std::string> Get(std::string_view key);
 // Numeric getters return zero when the key is missing

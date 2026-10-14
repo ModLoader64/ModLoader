@@ -39,6 +39,11 @@ bool ModLoader::Detail::Config_Declare(std::string_view folder, const Config::Se
     return ModLoader_Host_Setting_Declare(folder.data(), folder.size(), &record) == 0;
 }
 
+bool ModLoader::Detail::Config_Draw(std::string_view folder, std::string_view key) {
+    std::string terminated_key(key);
+    return ModLoader_Host_Setting_Draw(folder.data(), folder.size(), terminated_key.c_str()) == 0;
+}
+
 std::optional<std::string> ModLoader::Detail::Config_Get(std::string_view folder, std::string_view key) {
     std::string terminated_key(key);
     return Runtime::Read_Text([&](char* buffer, u64 capacity) {

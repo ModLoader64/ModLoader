@@ -1,6 +1,8 @@
 // Changes from any thread dispatch at refresh.
 #include "module.h"
 #include "settings.h"
+#include "ui/toolbar.h"
+#include "ui/imgui_bindings.h"
 
 #include "modloader_settings.h"
 
@@ -36,7 +38,7 @@ bool Declare(const Module& module, u64 folder_address, u64 folder_length, u64 re
     ModLoader_Setting setting = {};
     std::string page;
 
-    if (group == nullptr || record == nullptr || record->type == MODLOADER_SETTING_BINDING) {
+    if (group == nullptr || record == nullptr) {
         return false;
     }
 
@@ -75,6 +77,17 @@ s64 Get(const Module& module, u64 folder_address, u64 folder_length, u64 key_add
 NativeSymbol sNatives[] = {
     Native("setting_declare", "(III)i", [](wasm_exec_env_t exec_env, u64* slots) {
         slots[0] = Declare(Module_Of(exec_env), slots[0], slots[1], slots[2]) ? 0 : static_cast<u64>(-1);
+    }),
+    Native("setting_draw", "(III)i", [](wasm_exec_env_t exec_env, u64* slots) {
+        Imgui_Call call = Imgui_Enter(exec_env, "Config::Draw");
+        if (call.failed) {
+            slots[0] = static_cast<u64>(-1);
+            return;
+        }
+        Module& module = *call.module;
+        Settings_Group* group = Owner_Group(module, slots[0], slots[1]);
+        const char* key = module.C_Text(slots[2]);
+        slots[0] = group != nullptr && key != nullptr && Toolbar_Draw_Setting(*group, key) ? 0 : static_cast<u64>(-1);
     }),
     Native("setting_get", "(IIIII)I", [](wasm_exec_env_t exec_env, u64* slots) {
         slots[0] = static_cast<u64>(Get(Module_Of(exec_env), slots[0], slots[1], slots[2], slots[3], slots[4]));

@@ -169,6 +169,8 @@ install(DIRECTORY include cmake module DESTINATION ${sdk_destination} COMPONENT 
 install(DIRECTORY "${MODLOADER_ABI_ROOT}/include" DESTINATION share/modloader/ModLoader-ABI COMPONENT SDK)
 install(FILES "${MODLOADER_ROOT}/third_party/imgui/imgui.h" "${MODLOADER_ROOT}/third_party/imgui/imconfig.h"
     DESTINATION share/modloader/third_party/imgui COMPONENT SDK)
+install(DIRECTORY "${MODLOADER_ROOT}/third_party/sdl/include/SDL3"
+    DESTINATION share/modloader/third_party/sdl/include COMPONENT SDK)
 install(DIRECTORY "${MODLOADER_SYSROOT}/include/" DESTINATION ${sdk_destination}/sysroot/include COMPONENT SDK)
 foreach(library libc++.a libc++abi.a libz.a libyyjson.a libc.a libclang_rt.builtins-wasm64.a)
     install(FILES "${MODLOADER_SYSROOT}/lib/${library}" DESTINATION ${sdk_destination}/sysroot/lib COMPONENT SDK)

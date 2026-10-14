@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <modloader/guest/types.h>
 #include <modloader/function.h>
 
@@ -9,6 +11,13 @@ namespace ModLoader::Guest {
 class Heap {
 public:
     using Handle = u32; // 0: none
+
+    struct Region {
+        uptr Address;
+        usize Size;
+        Handle Block; // 0: free
+        bool Pinned;
+    };
 
     enum class Move_Phase : u32 {
         Prepare,  // Before copying; save references needed for rollback
@@ -68,6 +77,7 @@ public:
     usize Free_Bytes() const;
     usize Largest_Free() const; // Largest gap, before alignment padding
     u32 Block_Count() const;
+    std::vector<Region> Regions() const;
 
 private:
     struct Block;

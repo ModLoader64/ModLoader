@@ -81,6 +81,7 @@ struct Windows_State {
     Rml::Context* debugged = nullptr;
     SDL_Cursor* cursors[SDL_SYSTEM_CURSOR_COUNT] = {};
     bool wantsKeyboard = false;
+    bool wantsMouse = false;
 };
 
 extern Windows_State gWindows;

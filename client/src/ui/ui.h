@@ -28,9 +28,14 @@ public:
     }
 
     bool Process_Event(const SDL_Event& event);
+    void Set_Mouse_Captured(bool captured);
 
     bool Wants_Keyboard() const {
         return wantKeyboard;
+    }
+
+    bool Wants_Mouse() const {
+        return wantMouse;
     }
 
     void Update_Textures();
@@ -43,6 +48,7 @@ private:
     bool built = false;
     u32 topInset = 0;
     bool wantKeyboard = false;
+    bool wantMouse = false;
     bool demo = false;
     std::optional<Ui_Theme> pendingTheme;
 };
