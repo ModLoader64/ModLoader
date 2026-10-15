@@ -1,0 +1,169 @@
+name: Build ModLoader SDK and Client
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+
+    defaults:
+      run:
+        shell: pwsh
+
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CARGO_BUILD_JOBS: 2
+
+    steps:
+      - name: Checkout Repository & Submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: rustup
+        working-directory: emulators/gopher64
+        run: rustup component add rustfmt
+
+      - name: Ensure CMake & Ninja
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.31.6
+          ninjaVersion: 1.13.2
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential clang llvm lld libclang-dev llvm-dev \
+            pkg-config python3-dev libssl-dev libgtk-3-dev libsdl2-dev \
+            libasound2-dev libpulse-dev libpipewire-0.3-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev \
+            libwayland-dev wayland-protocols libdrm-dev libgbm-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libvulkan-dev \
+            libudev-dev libdbus-1-dev libusb-1.0-0-dev libdecor-0-dev
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Use installed LLVM (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          "$env:ProgramFiles/LLVM/bin" >> $env:GITHUB_PATH
+          "LIBCLANG_PATH=$env:ProgramFiles/LLVM/bin" >> $env:GITHUB_ENV
+
+      - name: Build SDK
+        run: |
+          mkdir build-sdk
+          cd build-sdk
+          cmake -G Ninja ../sdk "-DMODLOADER_BUILD_JOBS=$env:CMAKE_BUILD_PARALLEL_LEVEL"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build . --target dist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build Client
+        run: |
+          $sdkPath = "$env:GITHUB_WORKSPACE/build-sdk/dist"
+          $suffix = if ($IsWindows) { ".exe" } else { "" }
+          mkdir build-client
+          cd build-client
+          cmake -G Ninja .. "-DMODLOADER_SDK=$sdkPath" `
+            "-DCMAKE_C_COMPILER=$sdkPath/bin/clang$suffix" `
+            "-DCMAKE_CXX_COMPILER=$sdkPath/bin/clang++$suffix"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build . --target dist
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package distributions
+        run: |
+          New-Item -ItemType Directory -Path packages | Out-Null
+          $platform = "$($env:RUNNER_OS.ToLower())-x64"
+
+          foreach ($component in @("sdk", "client")) {
+            $source = "build-$component/dist"
+            $archive = "packages/modloader-$component-$platform"
+
+            if ($IsWindows) {
+              Compress-Archive -Path "$source/*" -DestinationPath "$archive.zip"
+            } else {
+              tar -czf "$archive.tar.gz" -C $source .
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          }
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ runner.os }}
+          path: packages/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  publish:
+    name: Publish nightly
+    needs: build
+    if: >-
+      github.repository == 'ModLoader64/ModLoader' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: packages-*
+          merge-multiple: true
+          path: packages
+
+      - name: Publish prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="build-${GITHUB_SHA:0:12}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" packages/* --clobber
+          else
+            gh release create "$tag" packages/* \
+              --target "$GITHUB_SHA" \
+              --title "build-${GITHUB_SHA:0:12}" \
+              --notes "$GITHUB_SHA." \
+              --prerelease \
+              --latest=false
+          fi
