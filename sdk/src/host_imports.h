@@ -1,8 +1,10 @@
 #pragma once
 
 #include <modloader/types.h>
-#include <modloader/detail/input.h>
 #include <modloader_module.h>
+
+struct ModLoader_Input_Frame;
+struct ModLoader_Input_Binding;
 
 extern "C" {
 
