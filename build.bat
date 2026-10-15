@@ -67,7 +67,7 @@ if "%client_flag%"=="true" (
     echo Building Client...
     if not exist "build-client" mkdir "build-client"
     cd build-client
-    cmake -G Ninja "-DMODLOADER_SDK=../build-sdk/dist"
+    cmake -G Ninja .. "-DMODLOADER_SDK=../build-sdk/dist"
     cmake --build .
     cd ..
     if errorlevel 1 exit /b 1
