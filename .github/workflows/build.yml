@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build:
+    if: github.event_name != 'push'
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
@@ -128,42 +129,3 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
-
-  publish:
-    name: Publish nightly
-    needs: build
-    if: >-
-      github.repository == 'ModLoader64/ModLoader' &&
-      github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' ||
-       github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download packages
-        uses: actions/download-artifact@v4
-        with:
-          pattern: packages-*
-          merge-multiple: true
-          path: packages
-
-      - name: Publish prerelease
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          tag="build-${GITHUB_SHA:0:12}"
-
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" packages/* --clobber
-          else
-            gh release create "$tag" packages/* \
-              --target "$GITHUB_SHA" \
-              --title "build-${GITHUB_SHA:0:12}" \
-              --notes "$GITHUB_SHA." \
-              --prerelease \
-              --latest=false
-          fi
