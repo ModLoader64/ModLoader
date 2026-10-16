@@ -7,6 +7,7 @@ cmake_path(ABSOLUTE_PATH MODLOADER_SDK BASE_DIRECTORY "${CMAKE_BINARY_DIR}" NORM
 set(MODLOADER_SDK "${MODLOADER_SDK}" CACHE PATH "Installed ModLoader SDK/toolchain bundle" FORCE)
 set(client_tools
     "${MODLOADER_SDK}/bin/wamrc${CMAKE_EXECUTABLE_SUFFIX}"
+    "${MODLOADER_SDK}/bin/llvm-symbolizer${CMAKE_EXECUTABLE_SUFFIX}"
     "${MODLOADER_SDK}/bin/wasm-ld${CMAKE_EXECUTABLE_SUFFIX}")
 
 include(cmake/dependencies.cmake)

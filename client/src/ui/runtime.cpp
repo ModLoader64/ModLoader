@@ -5,13 +5,6 @@
 #include <algorithm>
 #include <string.h>
 
-namespace {
-void Ui_Trapped(Module& module, const char* where) {
-    module.Trap(module.uiContext.execEnv, where);
-    Ui_Windows_Release_Owner(module);
-}
-} // namespace
-
 void Runtime::Start_Ui_Instance(Module& module) {
     Module_Context context;
     if (!module.Create_Context(module.execEnv, context)) {
@@ -59,8 +52,8 @@ void Runtime::Ui() {
 
         wasm_val_t argument = Wasm_I32(static_cast<s32>(phase));
         Imgui_Enter_Module(*module);
-        if (!module->Execute(module->uiContext.execEnv, module->uiPhase, 0, nullptr, 1, &argument)) {
-            Ui_Trapped(*module, "a UI phase");
+        if (!module->Execute(module->uiContext.execEnv, module->uiPhase, 0, nullptr, 1, &argument, "a UI phase")) {
+            Ui_Windows_Release_Owner(*module);
         }
 
         Imgui_Leave_Module(*module);
@@ -84,8 +77,12 @@ u32 Runtime::Ui_Event(Module& module, u64 listener, const void* record, u64 size
     wasm_val_t capacity = Wasm_I64(size);
     wasm_val_t address = Wasm_I64(0);
 
-    if (module.disabled || exec_env == nullptr || module.uiEventReserve == nullptr ||
-        !module.Execute(exec_env, module.uiEventReserve, 1, &address, 1, &capacity)) {
+    if (module.disabled || exec_env == nullptr || module.uiEventReserve == nullptr) {
+        return 0;
+    }
+
+    if (!module.Execute(exec_env, module.uiEventReserve, 1, &address, 1, &capacity, "a UI event buffer")) {
+        Ui_Windows_Release_Owner(module);
         return 0;
     }
 
@@ -100,8 +97,8 @@ u32 Runtime::Ui_Event(Module& module, u64 listener, const void* record, u64 size
 
     wasm_val_t arguments[2] = { Wasm_I64(listener), Wasm_I64(size) };
     wasm_val_t result = Wasm_I32(0);
-    if (!module.Execute(exec_env, module.uiEvent, 1, &result, 2, arguments)) {
-        Ui_Trapped(module, "a listener");
+    if (!module.Execute(exec_env, module.uiEvent, 1, &result, 2, arguments, "a listener")) {
+        Ui_Windows_Release_Owner(module);
         return 0;
     }
     

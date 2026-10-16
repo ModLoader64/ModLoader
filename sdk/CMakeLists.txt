@@ -51,7 +51,7 @@ ExternalProject_Add(llvm
         "-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
         "-DLLVM_ENABLE_PROJECTS=clang|lld|clang-tools-extra"
         "-DLLVM_TARGETS_TO_BUILD=X86|WebAssembly"
-        "-DLLVM_DISTRIBUTION_COMPONENTS=clang|clang-resource-headers|clangd|lld|llvm-ar|llvm-ranlib"
+        "-DLLVM_DISTRIBUTION_COMPONENTS=clang|clang-resource-headers|clangd|lld|llvm-ar|llvm-ranlib|llvm-symbolizer"
         -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF
         -DLLVM_ENABLE_ZLIB=OFF -DLLVM_ENABLE_ZSTD=OFF -DLLVM_ENABLE_LIBXML2=OFF
         -DLLVM_ENABLE_LIBEDIT=OFF -DLLVM_ENABLE_CURL=OFF -DLLVM_ENABLE_DIA_SDK=OFF
@@ -100,6 +100,7 @@ ExternalProject_Add(builtins
     BINARY_DIR "${CMAKE_BINARY_DIR}/builtins"
     ${wasm_project_arguments}
         "-DLLVM_CMAKE_DIR=${MODLOADER_LLVM_BUILD}/lib/cmake/llvm"
+        "-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -gline-tables-only"
         -DCOMPILER_RT_BAREMETAL_BUILD=ON
         -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON
         -DCOMPILER_RT_BUILD_CRT=OFF

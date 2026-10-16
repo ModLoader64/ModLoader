@@ -116,6 +116,7 @@ std::unique_ptr<Module> Runtime::Load_Definition(const std::string& path, const 
     }
 
     module->bytes = std::move(*bytes);
+    module->wasmPath = path;
     if (config.moduleExecution != Module_Execution::Interpreter && !Aot_Take_Native(*this, *module)) {
         return nullptr;
     }

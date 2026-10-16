@@ -33,6 +33,7 @@ struct Savestate_Block {
 struct Module {
     Runtime& runtime;
     std::string name;
+    std::string wasmPath;
     bool initialized = false;
     bool released = false;
     std::vector<u8> bytes;
@@ -91,8 +92,8 @@ struct Module {
 
     // Main instance only
     bool Call(wasm_function_inst_t function, const char* what, std::initializer_list<wasm_val_t> arguments = {}, wasm_val_t* result = nullptr);
-    bool Execute(wasm_exec_env_t context, wasm_function_inst_t function, u32 result_count, wasm_val_t* results, u32 argument_count, wasm_val_t* arguments);
-    void Trap(wasm_exec_env_t context, const char* what);
+    bool Execute(wasm_exec_env_t context, wasm_function_inst_t function, u32 result_count, wasm_val_t* results, u32 argument_count, wasm_val_t* arguments, const char* what = "a module call");
+    void Trap(wasm_exec_env_t context, const char* what, bool stack = true);
     bool Call_Handler(u64 handler, u32 processor, void* state, u64 size, bool& out_result);
     void* Event_Memory(u64 size);
     bool Follows(u32 event) const;

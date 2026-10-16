@@ -20,9 +20,7 @@ void* Thread_Main(wasm_exec_env_t exec_env, void* argument) {
         return nullptr;
     }
 
-    if (!module.Execute(exec_env, start, 0, nullptr, 1, &context)) {
-        module.Trap(exec_env, "thread");
-    }
+    module.Execute(exec_env, start, 0, nullptr, 1, &context, "thread");
 
     {
         std::lock_guard guard(module.resourceLock);

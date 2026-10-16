@@ -68,12 +68,7 @@ bool Run(Module& module, wasm_exec_env_t exec_env, wasm_function_inst_t function
         return false;
     }
 
-    if (module.Execute(exec_env, function, 0, nullptr, 1, &argument)) {
-        return true;
-    }
-
-    module.Trap(exec_env, "task");
-    return false;
+    return module.Execute(exec_env, function, 0, nullptr, 1, &argument, "task");
 }
 
 void Worker_Main() {

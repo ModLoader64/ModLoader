@@ -61,7 +61,7 @@ std::optional<Aot_Cache> Cache_Of(Runtime& runtime, std::span<const u8> bytes) {
     cache.flags = {
         "--target=x86_64", Text_Format("--size-level=%s", size_level),
         Text_Format("--opt-level=%d", static_cast<s32>(runtime.config.moduleExecution)),
-        "--enable-multi-thread", "--enable-shared-chain"
+        "--enable-multi-thread", "--enable-shared-chain", "--enable-dump-call-stack", "--emit-custom-sections=name"
     };
 
     std::string module_hash = Sha1::Digest(bytes);
