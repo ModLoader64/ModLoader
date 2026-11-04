@@ -96,7 +96,7 @@ std::optional<Link_Tool> Find_Linker() {
     return Link_Tool{std::move(linker), Sha1::Digest(*executable)};
 }
 
-std::optional<Linked_Module> Link(Runtime& runtime, const Module_Link_Runtime& files,
+std::optional<Linked_Module> Link(const Module_Preparation& runtime, const Module_Link_Runtime& files,
     std::span<Module_Link_Input> modules, const Link_Tool& linker) {
     Sha1 hash;
     hash.Update_Field("modloader.link.wasm.1");
@@ -221,7 +221,11 @@ std::optional<Linked_Module> Link(Runtime& runtime, const Module_Link_Runtime& f
 
 } // namespace
 
-std::optional<std::vector<Linked_Module>> Link_Modules(Runtime& runtime, std::span<const std::string> paths) {
+std::optional<std::vector<Linked_Module>> Link_Modules(const Module_Preparation& runtime, std::span<const std::string> paths) {
+    if (runtime.owner != nullptr && !runtime.owner->modules.empty()) {
+        return std::nullopt;
+    }
+
     auto plan = Prepare_Link(runtime, paths);
     if (!plan) {
         return std::nullopt;

@@ -1,0 +1,14 @@
+{
+    "colors": {
+        "accent": "#d41a1a",
+        "accent-secondary": "#820808",
+        "accent-bright": "#ef3535",
+        "accent-medium": "#a01111",
+        "accent-dark": "#790909",
+        "accent-deep": "#330303",
+        "accent-muted": "#4b3636",
+        "accent-surface": "#3a2020",
+        "brand-top": "#a80000",
+        "brand-bottom": "#4d0000"
+    }
+}

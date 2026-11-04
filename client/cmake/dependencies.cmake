@@ -78,6 +78,12 @@ target_compile_definitions(modloader_imgui PUBLIC IMGUI_USER_CONFIG="modloader_i
 target_link_libraries(modloader_imgui PUBLIC ModLoader::ABI SDL3::SDL3-static PRIVATE Freetype::Freetype)
 
 set(CMAKE_DISABLE_FIND_PACKAGE_Freetype ON)
+set(RMLUI_SVG_PLUGIN ${MODLOADER_FRONTEND})
+if(MODLOADER_FRONTEND)
+    set(LUNASVG_BUILD_EXAMPLES OFF)
+    add_subdirectory(${MODLOADER_ROOT}/third_party/lunasvg ${CMAKE_CURRENT_BINARY_DIR}/lunasvg EXCLUDE_FROM_ALL)
+    set(CMAKE_DISABLE_FIND_PACKAGE_lunasvg ON)
+endif()
 set(RMLUI_SAMPLES OFF)
 set(RMLUI_TESTS OFF)
 set(RMLUI_LUA_BINDINGS OFF)

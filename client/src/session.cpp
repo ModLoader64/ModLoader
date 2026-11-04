@@ -327,7 +327,7 @@ s32 Game_Session::Run() {
         return 1;
     }
 
-    presenter_config.title = "ModLoader - " + image.title + (options.Online() || !clientSettings.Get("network.server_address").empty() ? " - " + nickname : "");
+    presenter_config.title = "ModLoader - " + image.title + (options.Online() || (!options.offline && !clientSettings.Get("network.server_address").empty()) ? " - " + nickname : "");
     presenter_config.scaling = clientSettings.Scaling();
     presenter_config.filter = clientSettings.Filter();
     presenter_config.theme = clientSettings.Theme();

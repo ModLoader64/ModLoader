@@ -1,0 +1,89 @@
+<rml>
+<head>
+<title>ModLoader</title>
+<link type="text/rcss" href="frontend.rcss"/>
+</head>
+<body>
+<div id="window-drag"></div>
+<div id="window-controls">
+<button class="window-button" data-action="window-minimize" title="Minimize"><svg src="window-minimize.svg"/></button>
+<button id="window-maximize" class="window-button" data-action="window-maximize" title="Maximize"><svg id="maximize-icon" src="window-maximize.svg"/></button>
+<button class="window-button window-close" data-action="window-close" title="Close"><svg src="window-close.svg"/></button>
+</div>
+<div class="header-stripe stripe-left-one"></div>
+<div class="header-stripe stripe-left-two"></div>
+<div class="header-stripe stripe-one"></div>
+<div class="header-stripe stripe-two"></div>
+<div class="header-stripe stripe-three"></div>
+<div class="brand"><svg src="controller.svg"/><div class="brand-mark"><span>ML</span><span id="brand-suffix" class="brand-platform">&#160;</span></div></div>
+<div class="platform-control"><select id="adapter"></select></div>
+<div class="sidebar">
+<button class="nav-item active" data-action="page" data-page="general"><svg src="home.svg"/><span>General</span></button>
+<button class="nav-item" data-action="page" data-page="games"><svg src="controller.svg"/><span>Games</span></button>
+<button class="nav-item" data-action="page" data-page="mods"><svg src="plugin.svg"/><span>Mods</span></button>
+<button class="nav-item" data-action="page" data-page="config"><svg src="gear.svg"/><span>Config</span></button>
+<svg class="sidebar-watermark" src="controller.svg"/>
+</div>
+<div class="panel-label">MODLOADER</div>
+<div class="main-panel">
+<div class="page active" id="general-page">
+<div class="general-hero">
+<div id="selected-game"></div>
+<div class="launch-form">
+<label for="nickname">PLAYER</label><input class="text-input" id="nickname" type="text" maxlength="64" placeholder="USERNAME"/>
+<label for="server">SERVER ADDRESS (:PORT OPTIONAL)</label><input class="text-input" id="server" type="text" placeholder="SERVER ADDRESS"/>
+<div class="form-pair"><div class="form-field"><label for="lobby">LOBBY</label><input class="text-input" id="lobby" type="text" placeholder="LOBBY"/></div><div class="form-field"><label for="password">PASSWORD</label><input class="text-input" id="password" type="password" placeholder="PASSWORD"/></div></div>
+<label class="offline-label" for="offline"><span>OFFLINE MODE</span><input class="checkbox" type="checkbox" id="offline"/></label>
+<button class="launch-button" data-action="launch"><span class="play-icon">&#9654;</span><span>LAUNCH GAME</span></button>
+</div>
+</div>
+<div class="section-heading"><span>RECENTLY PLAYED</span><button class="text-button" data-action="page" data-page="games">VIEW ALL &#8250;</button></div>
+<div id="recent-games"></div>
+</div>
+<div class="page" id="games-page">
+<div class="library-toolbar">
+<button id="toggle-game-details" class="secondary details-toggle" data-action="toggle-game-details" title="Hide game details"><svg src="panel.svg"/></button>
+<div class="toolbar-field"><label for="view">VIEW</label><select id="view" class="compact-select"><option value="boxart">BOXART</option><option value="details">DETAILS</option><option value="list">LIST</option></select></div>
+<div class="toolbar-field"><label for="sort">SORT BY</label><select id="sort" class="compact-select"><option value="name">NAME</option><option value="recent">RECENTLY PLAYED</option></select></div>
+<input class="search-input" id="search" type="text" placeholder="SEARCH GAMES"/>
+<button class="secondary browse-button" data-action="browse-roms">+ ADD ROMS</button>
+</div>
+<div id="games-content" class="details-visible">
+<div id="games-scroll"><div id="games-before"></div><div id="games" class="game-grid boxart"></div><div id="games-after"></div></div>
+<div class="game-details">
+<div id="preview-empty" class="muted">Hover over a game to view its details.</div>
+<div id="preview-content">
+<div id="preview-card" class="game-card preview-card"></div>
+<div class="game-file-details">
+<span class="detail-label">ROM file</span><div id="preview-name" class="detail-value"></div>
+<span class="detail-label">Location</span><div id="preview-location" class="detail-value"></div>
+<span class="detail-label">Size</span><div id="preview-size" class="detail-value"></div>
+</div>
+<div class="preview-actions"><button class="secondary" data-action="open-rom-folder">Open ROM folder</button><button class="secondary" data-action="rescan">Refresh library</button></div>
+</div>
+</div>
+</div>
+</div>
+<div class="page" id="mods-page">
+<div class="page-heading"><div><h1>Mods</h1><p class="muted">Choose the plugins for your next session.</p></div><button class="secondary" data-action="browse-mods">CHOOSE MODS FOLDER</button></div>
+<div id="mods"></div>
+</div>
+<div class="page" id="config-page">
+<div class="page-heading"><div><h1>Config</h1><p class="muted">Set up your library and emulator.</p></div></div>
+<div id="rom-directories"></div>
+<div id="artwork-directories"></div>
+<div class="setting-row">
+<div class="setting-info setting-title">Mods</div>
+<div class="row-actions"><input class="text-input" id="mod-directory"/><button class="secondary" data-action="browse-mods">Browse</button></div>
+</div>
+<button class="secondary" data-action="rescan">Refresh library</button>
+<div id="client-settings"></div>
+<div class="settings-title">Debug</div>
+<label class="setting-row"><span class="setting-title">GameCube palette</span><input class="checkbox" type="checkbox" id="debug-gamecube-palette"/></label>
+</div>
+<div class="status-bar"><span class="status-dot"></span><span id="status">Ready</span></div>
+</div>
+<div class="corner-accent"></div>
+<div class="resize-grip"><svg src="window-resize.svg"/></div>
+</body>
+</rml>

@@ -45,7 +45,7 @@ Json_Document Read_Metadata(std::span<const u8> bytes, const std::string& path) 
 
 class Module_Set {
 public:
-    explicit Module_Set(Runtime& runtime) : runtime(runtime) {
+    explicit Module_Set(const Module_Preparation& runtime) : runtime(runtime) {
     }
 
     std::optional<usize> Read(const std::string& path) {
@@ -59,10 +59,6 @@ public:
             return previous_path->second;
         }
 
-        if (!runtime.modules.empty()) {
-            return std::nullopt;
-        }
-        
         std::optional<Module_Package> package;
         if (std::string_view(*canonical).ends_with(".pak")) {
             package = Open_Module_Package(*canonical, runtime.config.dataDirectory);
@@ -116,7 +112,7 @@ public:
         }
 
         auto runtime_path = Relative_File(*canonical, description->runtime);
-        auto runtime_index = runtime_path ? Read_Runtime(*runtime_path, description->runtimeHash) : std::nullopt;
+        auto runtime_index = runtime_path ? Read_Runtime(*runtime_path, description->runtimeHash, *canonical) : std::nullopt;
         if (!runtime_index) {
             return std::nullopt;
         }
@@ -135,9 +131,16 @@ public:
         auto previous_name = names.find(module.manifest.name);
         if (previous_name != names.end()) {
             usize index = previous_name->second;
-            if (modules[index].fingerprint != module.fingerprint || modules[index].packageFingerprint != module.packageFingerprint) {
+            Module_Link_Input& previous = modules[index];
+            if (previous.fingerprint != module.fingerprint ||
+                (!previous.packageFingerprint.empty() && !module.packageFingerprint.empty() && previous.packageFingerprint != module.packageFingerprint)) {
                 Log_Error("linker", "incompatible copies of module %s", module.manifest.name.c_str());
                 return std::nullopt;
+            }
+
+            if (previous.packageFingerprint.empty() && !module.packageFingerprint.empty()) {
+                previous.manifest = std::move(module.manifest);
+                previous.packageFingerprint = std::move(module.packageFingerprint);
             }
             paths.emplace(*canonical, index);
             return index;
@@ -227,7 +230,7 @@ public:
         return groups;
     }
 
-    Runtime& runtime;
+    const Module_Preparation& runtime;
     std::vector<Module_Link_Runtime> runtimes;
     std::vector<Module_Link_Input> modules;
     std::vector<usize> order;
@@ -241,10 +244,10 @@ private:
         return index;
     }
 
-    std::optional<usize> Read_Runtime(const std::string& path, std::string_view expected_hash) {
+    std::optional<usize> Read_Runtime(const std::string& path, std::string_view expected_hash, const std::string& source) {
         auto previous = runtimePaths.find(path);
         if (previous != runtimePaths.end()) {
-            return Check_Runtime_Hash(path, expected_hash, runtimes[previous->second].fingerprint) ? std::optional(previous->second) : std::nullopt;
+            return Check_Runtime_Hash(path, expected_hash, runtimes[previous->second].fingerprint, source) ? std::optional(previous->second) : std::nullopt;
         }
 
         auto bytes = File_Read(path);
@@ -256,7 +259,7 @@ private:
 
         Module_Link_Runtime loaded;
         loaded.fingerprint = Sha1::Digest(*bytes);
-        if (!Check_Runtime_Hash(path, expected_hash, loaded.fingerprint)) {
+        if (!Check_Runtime_Hash(path, expected_hash, loaded.fingerprint, source)) {
             return std::nullopt;
         }
 
@@ -278,7 +281,7 @@ private:
         yyjson_val* memory = yyjson_obj_get(root, "maxMemory");
         loaded.stackSize = yyjson_get_uint(stack);
         loaded.maxMemory = yyjson_get_uint(memory);
-        bool platform_mismatch = (runtime.config.session & MODLOADER_SESSION_GAME) != 0 && platform != "generic" && platform != runtime.platform.identifier;
+        bool platform_mismatch = (runtime.config.session & MODLOADER_SESSION_GAME) != 0 && platform != "generic" && platform != runtime.config.platform->identifier;
         if (platform_mismatch || target != "wasm64" || !yyjson_is_uint(stack) || !yyjson_is_uint(memory) ||
             loaded.stackSize < 16 || loaded.stackSize % 16 != 0 || loaded.maxMemory <= loaded.stackSize ||
             loaded.maxMemory % 65536 != 0 || loaded.maxMemory > 281474976645120ULL) {
@@ -286,8 +289,8 @@ private:
             return std::nullopt;
         }
 
-        if ((runtime.config.session & MODLOADER_SESSION_GAME) == 0) {
-            runtime.Register_Platform_Natives(platform);
+        if ((runtime.config.session & MODLOADER_SESSION_GAME) == 0 && runtime.owner != nullptr) {
+            runtime.owner->Register_Platform_Natives(platform);
         }
 
         usize index = runtimes.size();
@@ -298,9 +301,13 @@ private:
         return index;
     }
 
-    bool Check_Runtime_Hash(const std::string& path, std::string_view expected, std::string_view actual) {
+    bool Check_Runtime_Hash(const std::string& path, std::string_view expected, std::string_view actual, const std::string& source) {
         if (expected != actual) {
-            Log_Error("linker", "SDK mismatch: %s", path.c_str());
+            Log_Error(
+                "linker",
+                "SDK mismatch: %s requires runtime %s with SHA1 %.*s, found %.*s; use the matching runtime from the module distribution",
+                source.c_str(), path.c_str(), static_cast<s32>(expected.size()), expected.data(), static_cast<s32>(actual.size()), actual.data()
+            );
             return false;
         }
         return true;
@@ -317,7 +324,7 @@ private:
 
 } // namespace
 
-std::optional<Module_Link_Plan> Prepare_Link(Runtime& runtime, std::span<const std::string> paths) {
+std::optional<Module_Link_Plan> Prepare_Link(const Module_Preparation& runtime, std::span<const std::string> paths) {
     Module_Set selected(runtime);
     Module_Link_Plan plan;
     for (const std::string& path : paths) {

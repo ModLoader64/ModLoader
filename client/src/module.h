@@ -158,8 +158,6 @@ void Tasks_Release_Owner(Module& owner);
 void Breakpoints_Release_Owner(Module& owner);
 std::optional<std::string> Module_File_Path(const Module& module, std::string_view path);
 std::optional<std::string> Module_Mounted_Path(const Module& module, std::string_view folder, std::string_view path);
-void Aot_Compile_All(Runtime& runtime, std::span<const Linked_Module> modules);
-std::optional<std::vector<Linked_Module>> Link_Modules(Runtime& runtime, std::span<const std::string> paths);
 bool Aot_Take_Native(Runtime& runtime, Module& module);
 void Lobby_Dispatch(Runtime& runtime, u64 time);
 void Module_Settings_Dispatch(Runtime& runtime, u64 time);

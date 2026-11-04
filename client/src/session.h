@@ -9,6 +9,7 @@ struct Run_Options {
     std::vector<std::string> modulePaths;
     bool server = false;
     bool host = false;
+    bool offline = false;
     std::string connect;
     std::string nickname;
     std::string lobby;
