@@ -52,9 +52,18 @@ void Presenter::Push_Audio(const s16* samples, u32 frame_count, u32 sample_rate)
     f64 queued_frames = static_cast<f64>(SDL_GetAudioStreamQueued(audio)) / gAudioFrameSize;
     f64 native_frames = static_cast<f64>(device_frames) * sample_rate / device.freq;
     f64 ratio = queued_frames / native_frames;
-    SDL_SetAudioStreamFrequencyRatio(audio, audioLimited ? 1.0f : static_cast<f32>(std::clamp(ratio, 1.0, gAudioMaxRatio)));
-    if (ratio >= gAudioMaxRatio) {
-        return;
+    if (audioLimited) {
+        f64 maximum_frames = std::max(static_cast<f64>(sample_rate) / 10.0, native_frames * 2.0);
+        if (queued_frames > maximum_frames) {
+            SDL_ClearAudioStream(audio);
+        }
+        SDL_SetAudioStreamFrequencyRatio(audio, 1.0f);
+    }
+    else {
+        SDL_SetAudioStreamFrequencyRatio(audio, static_cast<f32>(std::clamp(ratio, 1.0, gAudioMaxRatio)));
+        if (ratio >= gAudioMaxRatio) {
+            return;
+        }
     }
 
     SDL_PutAudioStreamData(audio, samples, static_cast<s32>(frame_count * gAudioFrameSize));
