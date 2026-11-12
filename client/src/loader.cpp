@@ -1,4 +1,5 @@
 #include "module.h"
+#include "module_preparation.h"
 
 #include "modloader_module_exports.h"
 #include "modloader_platform.h"
@@ -167,7 +168,6 @@ bool Runtime::Instantiate(Module& loaded) {
     module->eventInit = wasm_runtime_lookup_function(module->instance, "modloader_event_init");
     module->eventShutdown = wasm_runtime_lookup_function(module->instance, "modloader_event_shutdown");
     module->eventPhase = wasm_runtime_lookup_function(module->instance, "modloader_event_phase");
-    module->eventHypercall = wasm_runtime_lookup_function(module->instance, "modloader_event_hypercall");
     module->eventBreakpoint = wasm_runtime_lookup_function(module->instance, "modloader_event_breakpoint");
     module->eventReserve = wasm_runtime_lookup_function(module->instance, "modloader_event_buffer");
     if (module->eventReserve == nullptr || module->eventPhase == nullptr) {
@@ -207,14 +207,15 @@ void Runtime::Prepare_Modules() {
 void Runtime::Load_Modules(std::span<const std::string> paths, const Runtime_Progress& report) {
     wasm_runtime_init_thread_env();
     progress = report ? &report : nullptr;
-    auto linked = Link_Modules(*this, paths);
+    Module_Preparation preparation{config, progress, this};
+    auto linked = Link_Modules(preparation, paths);
     if (!linked) {
         progress = nullptr;
         wasm_runtime_destroy_thread_env();
         return;
     }
 
-    Aot_Compile_All(*this, *linked);
+    Aot_Compile_All(preparation, *linked);
     for (usize index = 0; index < linked->size(); index++) {
         Linked_Module& module = (*linked)[index];
         if (progress != nullptr) {

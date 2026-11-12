@@ -176,10 +176,6 @@ bool Game_Session::Start_Adapter(const std::string& lobby_name) {
         Session_Of(host).On_Event(event, time, data, size);
     };
 
-    callbacks.hypercall = [](void* host, uint32_t processor, uint32_t id, void* state, uint64_t size) {
-        return Session_Of(host).runtime->Hypercall(processor, id, state, size);
-    };
-
     callbacks.breakpoint = [](void* host, const ModLoader_Break* hit, void* state, uint64_t size) {
         Session_Of(host).runtime->Breakpoint(*hit, state, size);
     };
@@ -214,7 +210,7 @@ bool Game_Session::Start_Adapter(const std::string& lobby_name) {
     config.dataDirectory = options.dataDirectory.c_str();
     config.windowMode = MODLOADER_WINDOW_HOST;
     presenter->Gpu_Uuid(config.gpuUuid);
-    saveDirectory = options.Online() || !clientSettings.Get("network.server_address").empty() ? Lobby_Save_Directory(options.dataDirectory, lobby_name) : "";
+    saveDirectory = options.Online() || (!options.offline && !clientSettings.Get("network.server_address").empty()) ? Lobby_Save_Directory(options.dataDirectory, lobby_name) : "";
     config.saveDirectory = !saveDirectory.empty() ? saveDirectory.c_str() : nullptr;
 
     if (adapter->create(&config, &callbacks, &handle) != 0) {
@@ -269,16 +265,17 @@ bool Game_Session::Start_Runtime(const std::string& nickname, const std::string&
     if (options.host) {
         config.serverConfig = { options.hostPort, options.hostAddress, options.dataDirectory };
     }
-    config.lobbyConfig = Lobby_Client::Config {
-        .address = options.host ? "" : clientSettings.Get("network.server_address"),
-        .port = clientSettings.Server_Port(),
-        .nickname = nickname,
-        .lobby = lobby_name,
-        .password = !options.password.empty() ? options.password : clientSettings.Get("network.password"),
-        .dataDirectory = options.dataDirectory,
-    };
+    if (!options.offline) {
+        config.lobbyConfig = Lobby_Client::Config {
+            .address = options.host ? "" : clientSettings.Get("network.server_address"),
+            .nickname = nickname,
+            .lobby = lobby_name,
+            .password = !options.password.empty() ? options.password : clientSettings.Get("network.password"),
+            .dataDirectory = options.dataDirectory,
+        };
+    }
 
-    if (!options.connect.empty() && !Parse_Server(options.connect, config.lobbyConfig->address, config.lobbyConfig->port)) {
+    if (config.lobbyConfig && !options.connect.empty() && !Parse_Server(options.connect, config.lobbyConfig->address, config.lobbyConfig->port)) {
         Log_Error("network", "invalid --connect address %s", options.connect.c_str());
         config.lobbyConfig.reset();
     }

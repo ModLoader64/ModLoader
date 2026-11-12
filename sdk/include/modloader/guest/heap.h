@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <modloader/guest/types.h>
-#include <modloader/function.h>
+#include <functional>
 
 namespace ModLoader::Guest {
 
@@ -39,7 +39,7 @@ public:
         Move_Reason reason;
     };
 
-    using Move_Callback = Function<bool(Move_Phase, const Move&)>;
+    using Move_Callback = std::function<bool(Move_Phase, const Move&)>;
 
     Heap() = default;
     Heap(const Heap&) = delete;

@@ -16,7 +16,7 @@ struct Record {
     u64 address;
     u64 size;
     u32 access;
-    Function<bool(const Breakpoint::Hit&, std::span<u8>)> handler;
+    std::function<bool(const Breakpoint::Hit&, std::span<u8>)> handler;
     Breakpoint::Handle id = 0;
 };
 
@@ -52,7 +52,7 @@ void Erase(u64 token) {
     }
 }
 
-bool Stop_Next(u32 processor, Function<bool(const Breakpoint::Hit&, std::span<u8>)> handler) {
+bool Stop_Next(u32 processor, std::function<bool(const Breakpoint::Hit&, std::span<u8>)> handler) {
     u64 token = Insert({processor, 0, 0, 0, std::move(handler)});
     if (token == 0) {
         return false;

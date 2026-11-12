@@ -12,11 +12,7 @@ namespace {
 
 constexpr s16 gCaptureAxis = 24000;
 constexpr const char* gMenuOrder[] = { "Video", "Input", "Emulation", "Plugins" };
-// Indexed by SDL_GamepadButton
-constexpr const char* gPadNames[] = {
-    "south", "east", "west", "north", "back", "guide", "start", "leftstick",
-    "rightstick", "leftshoulder", "rightshoulder", "dpup", "dpdown", "dpleft", "dpright"
-};
+constexpr const char* gFaceButtonNames[] = { "south", "east", "west", "north" };
 
 struct Change {
     Settings_Group* group;
@@ -25,6 +21,8 @@ struct Change {
 };
 
 std::vector<Change> sChanges;
+std::vector<SDL_GamepadBinding> sGamepadBindings;
+bool sXboxGamepad;
 
 Settings_Group* sCaptureGroup;
 std::string sCaptureKey;
@@ -46,6 +44,84 @@ std::string_view Take_Binding_Part(std::string_view& binding, char separator = '
     return part;
 }
 
+std::string Describe_Gamepad_Binding(std::string_view part) {
+    const bool axis = part.starts_with("axis:");
+    std::string name(part.substr(axis ? 5 : 4));
+    const bool positive = !axis || name.empty() || name.back() != '-';
+    if (axis && !name.empty() && (name.back() == '+' || name.back() == '-')) {
+        name.pop_back();
+    }
+    const s32 code = axis ? SDL_GetGamepadAxisFromString(name.c_str()) : Binding_Pad_Button(name);
+    if (sXboxGamepad) {
+        constexpr const char* face_names[] = { "A", "B", "X", "Y" };
+        if (!axis && code >= 0 && code < static_cast<s32>(std::size(face_names))) {
+            return std::string("Pad ") + face_names[code];
+        }
+        return std::string("Pad ") + name + (axis ? (positive ? "+" : "-") : "");
+    }
+
+    std::string text;
+    for (const SDL_GamepadBinding& binding : sGamepadBindings) {
+        bool maximum = true;
+        if (axis) {
+            if (binding.output_type != SDL_GAMEPAD_BINDTYPE_AXIS || binding.output.axis.axis != code) {
+                continue;
+            }
+            const s32 minimum = binding.output.axis.axis_min;
+            const s32 maximum_value = binding.output.axis.axis_max;
+            const s32 endpoint = positive ? std::max(minimum, maximum_value) : std::min(minimum, maximum_value);
+            if ((positive && endpoint <= 0) || (!positive && endpoint >= 0)) {
+                continue;
+            }
+            maximum = endpoint == maximum_value;
+        }
+        else if (binding.output_type != SDL_GAMEPAD_BINDTYPE_BUTTON || binding.output.button != code) {
+            continue;
+        }
+
+        std::string physical;
+        switch (binding.input_type) {
+        case SDL_GAMEPAD_BINDTYPE_BUTTON:
+            physical = Text_Format("Button %d", binding.input.button + 1);
+            break;
+        case SDL_GAMEPAD_BINDTYPE_AXIS:
+            {
+                const s32 endpoint = maximum ? binding.input.axis.axis_max : binding.input.axis.axis_min;
+                const s32 other_endpoint = maximum ? binding.input.axis.axis_min : binding.input.axis.axis_max;
+                physical = Text_Format("Axis %d %c", binding.input.axis.axis + 1, endpoint > other_endpoint ? '+' : '-');
+            }
+            break;
+        case SDL_GAMEPAD_BINDTYPE_HAT:
+            physical = Text_Format("Hat %d", binding.input.hat.hat + 1);
+            if (binding.input.hat.hat_mask & SDL_HAT_UP) {
+                physical += " up";
+            }
+            if (binding.input.hat.hat_mask & SDL_HAT_DOWN) {
+                physical += " down";
+            }
+            if (binding.input.hat.hat_mask & SDL_HAT_LEFT) {
+                physical += " left";
+            }
+            if (binding.input.hat.hat_mask & SDL_HAT_RIGHT) {
+                physical += " right";
+            }
+            break;
+        default:
+            continue;
+        }
+        text += text.empty() ? "" : " / ";
+        text += physical;
+    }
+    if (!text.empty()) {
+        return "Pad " + text;
+    }
+    if (code < 0) {
+        return std::string("Mapped ") + (axis ? "axis " : "button ") + name;
+    }
+    return axis ? Text_Format("Mapped axis %d %c", code + 1, positive ? '+' : '-')
+                : Text_Format("Mapped button %d", code + 1);
+}
+
 std::string Describe_Binding(std::string_view binding) {
     std::string text;
     while (!binding.empty()) {
@@ -63,7 +139,8 @@ std::string Describe_Binding(std::string_view binding) {
                 text += "Mouse ";
             }
             else if (part.starts_with("pad:") || part.starts_with("axis:")) {
-                text += "Pad ";
+                text += Describe_Gamepad_Binding(part);
+                continue;
             }
 
             usize separator = part.find(':');
@@ -499,8 +576,11 @@ bool Toolbar_Capture_Event(const SDL_Event& event) {
         }
         break;
     case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-        if (event.gbutton.button < std::size(gPadNames)) {
-            input = std::string("pad:") + gPadNames[event.gbutton.button];
+        name = event.gbutton.button < std::size(gFaceButtonNames)
+            ? gFaceButtonNames[event.gbutton.button]
+            : SDL_GetGamepadStringForButton(static_cast<SDL_GamepadButton>(event.gbutton.button));
+        if (name != nullptr) {
+            input = std::string("pad:") + name;
         }
         break;
     case SDL_EVENT_GAMEPAD_AXIS_MOTION:
@@ -559,12 +639,12 @@ bool Toolbar_Capturing() {
 }
 
 s32 Binding_Pad_Button(std::string_view name) {
-    for (u32 index = 0; index < std::size(gPadNames); index++) {
-        if (name == gPadNames[index]) {
+    for (u32 index = 0; index < std::size(gFaceButtonNames); index++) {
+        if (name == gFaceButtonNames[index]) {
             return static_cast<s32>(index);
         }
     }
-    return -1;
+    return SDL_GetGamepadButtonFromString(std::string(name).c_str());
 }
 
 s32 Binding_Mouse_Button(std::string_view name) {
@@ -574,4 +654,22 @@ s32 Binding_Mouse_Button(std::string_view name) {
         }
     }
     return -1;
+}
+
+void Toolbar_Set_Gamepad(SDL_Gamepad* gamepad) {
+    sGamepadBindings.clear();
+    sXboxGamepad = false;
+    if (gamepad == nullptr) {
+        return;
+    }
+    const SDL_GamepadType type = SDL_GetGamepadType(gamepad);
+    sXboxGamepad = type == SDL_GAMEPAD_TYPE_XBOX360 || type == SDL_GAMEPAD_TYPE_XBOXONE;
+    s32 count = 0;
+    SDL_GamepadBinding** bindings = SDL_GetGamepadBindings(gamepad, &count);
+    if (bindings != nullptr) {
+        for (s32 index = 0; index < count; index++) {
+            sGamepadBindings.push_back(*bindings[index]);
+        }
+        SDL_free(bindings);
+    }
 }

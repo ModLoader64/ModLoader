@@ -73,7 +73,7 @@ bool Detail::File_Create_Directory(std::string_view folder, std::string_view pat
     return ModLoader_Host_File_Create_Directory(folder.data(), folder.size(), path.data(), path.size()) != 0;
 }
 
-bool Detail::File_List(std::string_view folder, std::string_view path, Function<void(std::string_view name, bool is_folder)> each) {
+bool Detail::File_List(std::string_view folder, std::string_view path, std::function<void(std::string_view name, bool is_folder)> each) {
     auto listing = Runtime::Read_Text([&](char* buffer, u64 capacity) {
         return ModLoader_Host_File_List(folder.data(), folder.size(), path.data(), path.size(), buffer, capacity);
     });

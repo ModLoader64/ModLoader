@@ -1,6 +1,6 @@
 #pragma once
 
-#include "runtime.h"
+#include "module_preparation.h"
 
 struct Module_Link_Input {
     Module_Manifest manifest;
@@ -22,4 +22,4 @@ struct Module_Link_Plan {
     std::vector<std::vector<Module_Link_Input>> groups;
 };
 
-std::optional<Module_Link_Plan> Prepare_Link(Runtime& runtime, std::span<const std::string> paths);
+std::optional<Module_Link_Plan> Prepare_Link(const Module_Preparation& runtime, std::span<const std::string> paths);

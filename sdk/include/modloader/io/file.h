@@ -2,7 +2,7 @@
 // assets:/ reads read-only bundled module assets (.pak)
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/async/promise.h>
 #include <modloader/types.h>
 
@@ -47,7 +47,7 @@ bool Delete(std::string_view path);
 bool Exists(std::string_view path);
 bool Create_Directory(std::string_view path);
 // Calls each(name, is_folder) in name order; names last until the callback returns
-bool List(std::string_view path, Function<void(std::string_view name, bool is_folder)> each);
+bool List(std::string_view path, std::function<void(std::string_view name, bool is_folder)> each);
 // Read failure returns nullopt; writes create or replace the file
 std::optional<std::vector<u8>> Read_All(std::string_view path);
 bool Write_All(std::string_view path, const void* data, u64 size);

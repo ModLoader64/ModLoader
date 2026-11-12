@@ -11,6 +11,7 @@
 #include <modloader/guest/machine.h>
 #include <modloader/platform.h>
 #include <modloader/size_literals.h>
+#include <modloader/guest/signature.h>
 #include <modloader/guest/symbols.h>
 #include <modloader/text.h>
 #include <modloader/types.h>

@@ -294,3 +294,8 @@ std::optional<Module_Package> Open_Module_Package(const std::string& path, const
     
     return package;
 }
+
+std::optional<std::vector<u8>> Read_Module_Package_Manifest(const std::string& path) {
+    Archive archive;
+    return archive.Open(path) ? archive.Bytes("manifest.json", gManifestLimit) : std::nullopt;
+}

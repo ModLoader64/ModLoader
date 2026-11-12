@@ -14,7 +14,7 @@ class Breakpoint : public Guest::Breakpoint {
 public:
     // Runs before state.pc; true pauses the CPU
     // Changing pc skips the stopped instruction
-    using Handler = Function<bool(const Hit& hit, Cpu_State& state)>;
+    using Handler = std::function<bool(const Hit& hit, Cpu_State& state)>;
 
     // Watches [address, address + size)
     bool Create(Guest::uptr address, Guest::usize size, u32 access, Handler handler);

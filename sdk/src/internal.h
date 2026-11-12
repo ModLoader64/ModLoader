@@ -49,7 +49,6 @@ __attribute__((weak)) void Platform_Shutdown();
 __attribute__((weak)) void Platform_Maintain(u32 event);
 void Platform_Event(ModLoader_Event_Phase phase, u32 event, const void* record, u64 size);
 bool Platform_Clock_Event(u32 clock, u32* event);
-bool Platform_Hypercall(u64 handler, u32 processor, void* state, u64 size);
 
 } // namespace ModLoader::Runtime
 

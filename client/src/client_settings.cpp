@@ -78,10 +78,6 @@ Ui_Theme Client_Settings::Theme() const {
     return Ui_Theme_From_Name(Get("theme"));
 }
 
-u16 Client_Settings::Server_Port() const {
-    return static_cast<u16>(group->Get_Number("network.server_port"));
-}
-
 u32 Client_Settings::Unthrottled_Speed_Percent() const {
     return static_cast<u32>(group->Get_Number("emulation.unthrottled_speed_percent"));
 }

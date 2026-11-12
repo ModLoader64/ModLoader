@@ -73,25 +73,6 @@ void* Module::Event_Memory(u64 size) {
     return Call(eventReserve, "event buffer", { Wasm_I64(size) }, &result) && result.of.i64 != 0 ? Memory(static_cast<u64>(result.of.i64), size) : nullptr;
 }
 
-bool Module::Call_Handler(u64 handler, u32 processor, void* state, u64 size, bool& out_result) {
-    void* buffer = Event_Memory(size);
-    wasm_val_t result = {};
-
-    out_result = false;
-    if (buffer == nullptr) {
-        return false;
-    }
-
-    memcpy(buffer, state, size);
-    if (!Call(eventHypercall, "a handler", { Wasm_I64(handler), Wasm_I32(static_cast<s32>(processor)), Wasm_I64(size) }, &result)) {
-        return false;
-    }
-
-    memcpy(state, buffer, size);
-    out_result = result.of.i32 != 0;
-    return true;
-}
-
 bool Module::Follows(u32 event_id) const {
     return std::ranges::binary_search(events, event_id);
 }

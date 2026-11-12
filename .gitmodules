@@ -42,3 +42,12 @@
 	path = third_party/llvm
 	url = https://github.com/ModLoader64/llvm-project-modloader.git
 	branch = modloader
+[submodule "montserrat"]
+	path = third_party/montserrat
+	url = https://github.com/JulietaUla/Montserrat.git
+[submodule "teko"]
+	path = third_party/teko
+	url = https://github.com/googlefonts/teko.git
+[submodule "lunasvg"]
+	path = third_party/lunasvg
+	url = https://github.com/sammycage/lunasvg.git

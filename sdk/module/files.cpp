@@ -19,7 +19,7 @@ bool Create_Directory(std::string_view path) {
     return Detail::File_Create_Directory(Detail::gModuleFolder, path);
 }
 
-bool List(std::string_view path, Function<void(std::string_view, bool)> each) {
+bool List(std::string_view path, std::function<void(std::string_view, bool)> each) {
     return Detail::File_List(Detail::gModuleFolder, path, std::move(each));
 }
 
@@ -67,11 +67,7 @@ bool Set(std::string_view key, std::string_view value) {
     return Detail::Config_Set(Detail::gModuleFolder, key, value);
 }
 
-u32 On_Change(Function<void(std::string_view)> handler) {
-    return Detail::Config_On_Change(Detail::gModuleFolder, std::move(handler));
-}
-
-Subscription Subscribe(Function<void(std::string_view)> handler) {
+Subscription Subscribe(std::function<void(std::string_view)> handler) {
     return Detail::Config_Subscribe(Detail::gModuleFolder, std::move(handler));
 }
 

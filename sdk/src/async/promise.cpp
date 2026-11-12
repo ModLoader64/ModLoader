@@ -11,7 +11,6 @@
 namespace {
 
 using ModLoader::Error;
-using ModLoader::Function;
 using ModLoader::Promise_Core::State;
 
 constexpr u32 gIndexBits = 20;
@@ -20,9 +19,9 @@ constexpr u32 gGenerationMask = (1u << (32 - gIndexBits)) - 1;
 constexpr u32 gDispatchLimit = 100000;
 
 struct Continuation {
-    using Value_Callback = Function<void(const void*)>;
-    using Error_Callback = Function<void(Error)>;
-    using Settled_Callback = Function<void()>;
+    using Value_Callback = std::function<void(const void*)>;
+    using Error_Callback = std::function<void(Error)>;
+    using Settled_Callback = std::function<void()>;
 
     std::unique_ptr<Continuation> next;
     u64 id = 0;
@@ -237,15 +236,15 @@ bool ModLoader::Promise_Core::Reject(u32 handle, Error error) {
     return Settle(handle, State::Rejected, {}, error == Error::None ? Error::Failed : error);
 }
 
-u64 ModLoader::Promise_Core::Then(u32 handle, Function<void(const void*)> callback) {
+u64 ModLoader::Promise_Core::Then(u32 handle, std::function<void(const void*)> callback) {
     return Add(handle, std::move(callback));
 }
 
-u64 ModLoader::Promise_Core::Catch(u32 handle, Function<void(Error)> callback) {
+u64 ModLoader::Promise_Core::Catch(u32 handle, std::function<void(Error)> callback) {
     return Add(handle, std::move(callback));
 }
 
-u64 ModLoader::Promise_Core::Finally(u32 handle, Function<void()> callback) {
+u64 ModLoader::Promise_Core::Finally(u32 handle, std::function<void()> callback) {
     return Add(handle, std::move(callback));
 }
 bool ModLoader::Promise_Core::Remove_Continuation(u32 handle, u64 id) {

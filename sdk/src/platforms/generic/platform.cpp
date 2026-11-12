@@ -22,7 +22,3 @@ bool ModLoader::Runtime::Platform_Clock_Event(u32, u32*) {
     return false;
 }
 
-bool ModLoader::Runtime::Platform_Hypercall(u64, u32, void*, u64) {
-    return false;
-}
-

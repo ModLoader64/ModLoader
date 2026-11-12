@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/types.h>
 #include <modloader_debug.h>
 
@@ -45,7 +45,7 @@ public:
 
 protected:
     // Mutable CPU state bytes in the platform's format; return true to pause
-    using Handler = Function<bool(const Hit&, std::span<u8>)>;
+    using Handler = std::function<bool(const Hit&, std::span<u8>)>;
 
     // Processor ID comes from Machine::Processor_Describe
     bool Create(u32 processor, u64 address, u64 size, u32 access, Handler handler);

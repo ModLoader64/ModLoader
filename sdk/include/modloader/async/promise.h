@@ -79,15 +79,12 @@ public:
     }
 
     // Register success/failure/completion callbacks; returns false if registration failed
-    template<typename Callable>
-    bool Try_Then(Callable callback) const {
-        if constexpr (std::is_pointer_v<Callable> || std::is_same_v<Callable, Callback>) {
-            if (!callback) {
-                return false;
-            }
+    bool Try_Then(Callback callback) const {
+        if (!callback) {
+            return false;
         }
 
-        return Promise_Core::Then(Handle(), [callback = std::move(callback)](const void* value) mutable {
+        return Promise_Core::Then(Handle(), [callback = std::move(callback)](const void* value) {
             if constexpr (std::is_void_v<T>) {
                 callback();
             }
@@ -97,28 +94,27 @@ public:
         }) != 0;
     }
 
-    bool Try_Catch(Function<void(Error)> callback) const {
+    bool Try_Catch(std::function<void(Error)> callback) const {
         return Promise_Core::Catch(Handle(), std::move(callback)) != 0;
     }
 
-    bool Try_Finally(Function<void()> callback) const {
+    bool Try_Finally(std::function<void()> callback) const {
         return Promise_Core::Finally(Handle(), std::move(callback)) != 0;
     }
 
     // Chainable registration; registration failure rejects a pending promise with Failed
     // These return the same promise, not a transformed result
-    template<typename Callable>
-    const Promise& Then(Callable callback) const {
+    const Promise& Then(Callback callback) const {
         Register(Try_Then(std::move(callback)));
         return *this;
     }
 
-    const Promise& Catch(Function<void(Error)> callback) const {
+    const Promise& Catch(std::function<void(Error)> callback) const {
         Register(Try_Catch(std::move(callback)));
         return *this;
     }
 
-    const Promise& Finally(Function<void()> callback) const {
+    const Promise& Finally(std::function<void()> callback) const {
         Register(Try_Finally(std::move(callback)));
         return *this;
     }
@@ -181,5 +177,3 @@ private:
 };
 
 } // namespace ModLoader
-
-

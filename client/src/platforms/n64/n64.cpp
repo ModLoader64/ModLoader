@@ -54,7 +54,6 @@ N64_Platform::N64_Platform() {
     imageSpace = "rom";
     bigEndian = true;
     savestates = true;
-    lastHypercall = 0xFFFFF;
     clockCount = MODLOADER_N64_CLOCK_FRAME;
     controls = gControls;
 }

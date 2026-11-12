@@ -1,5 +1,8 @@
 #include "base.h"
 #include "session.h"
+#if defined(MODLOADER_FRONTEND)
+#include "frontend/frontend.h"
+#endif
 
 #include <stdio.h>
 
@@ -17,6 +20,7 @@ void Print_Usage() {
         "  --adapter <library>   the emulator\n"
         "  --data <dir>          directory for userdata\n"
         "  --verbose             debug logging\n"
+        "  --no-frontend         skip the frontend\n"
         "\n"
         "Online:\n"
         "  --connect <host[:port]>   override the configured server address and port\n"
@@ -42,11 +46,19 @@ int main(int argument_count, char** arguments) {
         { "--password", &options.password }, { "--host-address", &options.hostAddress },
     };
     bool known;
+    bool frontend = true;
 
     for (s32 index = 1; index < argument_count; index++) {
         argument = arguments[index];
         known = true;
-        if (argument == "--verbose") {
+        if (argument != "--verbose" && argument != "--data") {
+            frontend = false;
+        }
+        if (argument == "--help" || argument == "-h") {
+            Print_Usage();
+            return 0;
+        }
+        else if (argument == "--verbose") {
             Log_Set_Level(Log_Level::Debug);
         }
         else if (argument == "--server") {
@@ -64,7 +76,7 @@ int main(int argument_count, char** arguments) {
             options.host = true;
             options.hostPort = static_cast<u16>(*port);
         }
-        else {
+        else if (argument != "--no-frontend") {
             known = false;
             for (const auto& [name, value] : texts) {
                 if (argument == name && index + 1 < argument_count) {
@@ -82,15 +94,19 @@ int main(int argument_count, char** arguments) {
         }
     }
 
-    if (options.romPath.empty() && !options.server) {
-        Print_Usage();
-        return 2;
-    }
-
     if (options.dataDirectory.empty()) {
         options.dataDirectory = Path_Join(Path_Executable_Directory(), "data");
     }
 
     Directory_Create_All(options.dataDirectory);
+#if defined(MODLOADER_FRONTEND)
+    if (frontend) {
+        return Frontend_Run(options);
+    }
+#endif
+    if (options.romPath.empty() && !options.server) {
+        Print_Usage();
+        return 2;
+    }
     return options.server ? Dedicated_Run(options) : Session_Run(options);
 }

@@ -1,4 +1,5 @@
 #include "module.h"
+#include "module_preparation.h"
 #include "base/file.h"
 #include "sha1.h"
 
@@ -37,30 +38,30 @@ struct Aot_Job {
     std::string temporary;
 };
 
-std::optional<Aot_Cache> Cache_Of(Runtime& runtime, std::span<const u8> bytes) {
+std::optional<Aot_Cache> Cache_Of(const Runtime_Config& config, std::string& compiler_fingerprint, std::span<const u8> bytes) {
 #if defined(_WIN32)
     const char* size_level = "0";
 #else
     const char* size_level = "3";
 #endif
     Aot_Cache cache;
-    std::string directory = Path_Join(runtime.config.dataDirectory, "cache/aot");
+    std::string directory = Path_Join(config.dataDirectory, "cache/aot");
 
-    if (runtime.config.moduleExecution == Module_Execution::Interpreter || runtime.config.aotCompiler.empty()) {
+    if (config.moduleExecution == Module_Execution::Interpreter || config.aotCompiler.empty()) {
         return std::nullopt;
     }
 
-    if (runtime.aotCompilerFingerprint.empty()) {
-        auto compiler = File_Read(runtime.config.aotCompiler);
+    if (compiler_fingerprint.empty()) {
+        auto compiler = File_Read(config.aotCompiler);
         if (!compiler) {
             return std::nullopt;
         }
-        runtime.aotCompilerFingerprint = Sha1::Digest(*compiler);
+        compiler_fingerprint = Sha1::Digest(*compiler);
     }
 
     cache.flags = {
         "--target=x86_64", Text_Format("--size-level=%s", size_level),
-        Text_Format("--opt-level=%d", static_cast<s32>(runtime.config.moduleExecution)),
+        Text_Format("--opt-level=%d", static_cast<s32>(config.moduleExecution)),
         "--enable-multi-thread", "--enable-shared-chain", "--enable-dump-call-stack", "--emit-custom-sections=name"
     };
 
@@ -72,7 +73,7 @@ std::optional<Aot_Cache> Cache_Of(Runtime& runtime, std::span<const u8> bytes) {
         build_hash.Update(flag);
     }
 
-    build_hash.Update(runtime.aotCompilerFingerprint);
+    build_hash.Update(compiler_fingerprint);
     Directory_Create_All(directory);
     cache.file = Path_Join(directory, module_hash + ".aot");
     cache.tag.assign(reinterpret_cast<const char*>(gCacheSectionHeader), sizeof(gCacheSectionHeader));
@@ -135,18 +136,26 @@ bool Publish_Compiled(const std::string& temporary, const Aot_Cache& cache, s32 
 
 }
 
-void Aot_Compile_All(Runtime& runtime, std::span<const Linked_Module> modules) {
-    if (runtime.config.moduleExecution == Module_Execution::Interpreter) {
-        return;
+bool Aot_Compile_All(const Module_Preparation& preparation, std::span<const Linked_Module> modules) {
+    const Runtime_Config& config = preparation.config;
+    if (config.moduleExecution == Module_Execution::Interpreter) {
+        return true;
     }
 
+    std::string fingerprint;
+    std::string& compiler_fingerprint = preparation.owner != nullptr ? preparation.owner->aotCompilerFingerprint : fingerprint;
+    bool success = true;
     std::vector<Aot_Request> requests;
     std::unordered_set<std::string> scheduled;
 
     for (usize index = 0; index < modules.size(); index++) {
         auto bytes = File_Read(modules[index].path);
-        auto cache = bytes ? Cache_Of(runtime, *bytes) : std::nullopt;
-        if (cache && !Cache_Is_Current(*cache) && scheduled.insert(cache->file).second) {
+        auto cache = bytes ? Cache_Of(config, compiler_fingerprint, *bytes) : std::nullopt;
+        if (!cache) {
+            success = false;
+            continue;
+        }
+        if (!Cache_Is_Current(*cache) && scheduled.insert(cache->file).second) {
             requests.push_back({ index, std::move(*cache) });
         }
     }
@@ -164,6 +173,7 @@ void Aot_Compile_All(Runtime& runtime, std::span<const Linked_Module> modules) {
                 const char* name = modules[request.module].name.c_str();
                 if (!Publish_Compiled(job.temporary, request.cache, *result)) {
                     Log_Error("wamrc", "%s: compilation failed (%d)", name, *result);
+                    success = false;
                 }
                 completed++;
             }
@@ -175,17 +185,18 @@ void Aot_Compile_All(Runtime& runtime, std::span<const Linked_Module> modules) {
 
                 job.temporary = Temporary_Path(request.cache, static_cast<u32>(job.request));
                 Log_Info("wamrc", "compiling %s", module.name.c_str());
-                if (!job.process.Spawn(runtime.config.aotCompiler, Compile_Arguments(request.cache, module.path, job.temporary))) {
+                if (!job.process.Spawn(config.aotCompiler, Compile_Arguments(request.cache, module.path, job.temporary))) {
                     Log_Error("wamrc", "%s: cannot start compiler", module.name.c_str());
+                    success = false;
                     completed++;
                 }
             }
         }
 
-        if (runtime.progress != nullptr) {
+        if (preparation.progress != nullptr) {
             for (const Aot_Job& job : jobs) {
                 if (job.process.Is_Watched()) {
-                    (*runtime.progress)(Runtime_Stage::Compiling, modules[requests[job.request].module].name.c_str(),
+                    (*preparation.progress)(Runtime_Stage::Compiling, modules[requests[job.request].module].name.c_str(),
                         static_cast<u32>(completed + 1), static_cast<u32>(requests.size()));
                     break;
                 }
@@ -196,10 +207,11 @@ void Aot_Compile_All(Runtime& runtime, std::span<const Linked_Module> modules) {
             Time_Sleep_Milliseconds(10);
         }
     }
+    return success;
 }
 
 bool Aot_Take_Native(Runtime& runtime, Module& module) {
-    std::optional<Aot_Cache> cache = Cache_Of(runtime, module.bytes);
+    std::optional<Aot_Cache> cache = Cache_Of(runtime.config, runtime.aotCompilerFingerprint, module.bytes);
 
     if (!cache) {
         Log_Error("wamrc", "%s: cannot compile", module.name.c_str());

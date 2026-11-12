@@ -10,7 +10,7 @@ namespace ModLoader::Detail {
 template<typename... Arguments>
 class Callback_List {
 public:
-    using Callback = Function<void(Arguments...)>;
+    using Callback = std::function<void(Arguments...)>;
 
     constexpr Callback_List() = default;
     Callback_List(const Callback_List&) = delete;
@@ -38,7 +38,7 @@ public:
         });
     }
 
-    Subscription Scope(u32 id, Function<void()> cleanup) {
+    Subscription Scope(u32 id, std::function<void()> cleanup) {
         auto slot = Find(id);
         return slot != nullptr ? slot->Subscribe(std::move(cleanup)) : Subscription{};
     }
@@ -91,7 +91,7 @@ private:
         std::shared_ptr<Callback> callback;
         std::weak_ptr<Subscription_State> subscription;
 
-        Subscription Subscribe(Function<void()> cleanup) {
+        Subscription Subscribe(std::function<void()> cleanup) {
             auto state = std::make_shared<Subscription_State>(std::move(cleanup));
             subscription = state;
             return Subscription(std::move(state));

@@ -19,7 +19,6 @@ u64 ModLoader_Ui_Event_Buffer(u64 capacity) asm("modloader_ui_event_buffer");
 u32 ModLoader_Ui_Event(u64 listener, u64 size) asm("modloader_ui_event");
 u64 ModLoader_Event_Buffer(u64 capacity) asm("modloader_event_buffer");
 void ModLoader_Event_Phase_Handle(u32 phase, u32 event, u64 size) asm("modloader_event_phase");
-u32 ModLoader_Event_Hypercall(u64 handler, u32 processor, u64 size) asm("modloader_event_hypercall");
 u32 ModLoader_Event_Breakpoint(u64 handler, u32 processor, u64 size) asm("modloader_event_breakpoint");
 void ModLoader_Dispatch() asm("modloader_dispatch");
 
@@ -316,21 +315,6 @@ MODLOADER_EXPORT("modloader_event_phase") void ModLoader_Event_Phase_Handle(u32 
     sEventDepth--;
 }
 
-// The host copied the platform's CPU state into the event buffer, and copies it back afterwards
-MODLOADER_EXPORT("modloader_event_hypercall") u32 ModLoader_Event_Hypercall(u64 handler, u32 processor, u64 size) {
-    Buffer* buffer = At_Depth(&sEventBuffer, sEventDepth);
-    if (buffer == nullptr || size > buffer->capacity) {
-        return 0;
-    }
-    sEventDepth++;
-    bool handled = ModLoader::Runtime::Platform_Hypercall(handler, processor, buffer->data, size);
-
-    Finish_Event();
-    sEventDepth--;
-    return handled ? 1 : 0;
-}
-
-// The same for a breakpoint's handler, with the hit after the CPU state; 1 pauses the game
 MODLOADER_EXPORT("modloader_event_breakpoint") u32 ModLoader_Event_Breakpoint(u64 handler, u32 processor, u64 size) {
     Buffer* buffer = At_Depth(&sEventBuffer, sEventDepth);
     if (buffer == nullptr || size > buffer->capacity || buffer->capacity - size < sizeof(ModLoader_Break)) {

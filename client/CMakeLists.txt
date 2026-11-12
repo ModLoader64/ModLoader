@@ -10,10 +10,14 @@ set(client_tools
     "${MODLOADER_SDK}/bin/llvm-symbolizer${CMAKE_EXECUTABLE_SUFFIX}"
     "${MODLOADER_SDK}/bin/wasm-ld${CMAKE_EXECUTABLE_SUFFIX}")
 
+option(MODLOADER_FRONTEND "Build the frontend GUI" ON)
 include(cmake/dependencies.cmake)
 
 find_package(Threads REQUIRED)
 file(GLOB_RECURSE client_sources CONFIGURE_DEPENDS src/*.cpp)
+if(NOT MODLOADER_FRONTEND)
+    list(FILTER client_sources EXCLUDE REGEX "/frontend/")
+endif()
 add_executable(modloader ${client_sources})
 set_target_properties(modloader PROPERTIES OUTPUT_NAME ModLoader)
 target_compile_features(modloader PRIVATE cxx_std_23)
@@ -25,6 +29,24 @@ set_source_files_properties(src/library_natives.cpp PROPERTIES
 )
 target_link_libraries(modloader PRIVATE vmlib modloader_zip modloader_yyjson modloader_monocypher modloader_imgui RmlUi::RmlUi
     ModLoader::ABI ModLoader::N64Tools SDL3::SDL3-static Threads::Threads ${CMAKE_DL_LIBS})
+if(MODLOADER_FRONTEND)
+    set(rml_backends "${MODLOADER_ROOT}/third_party/rmlui/Backends")
+    target_sources(modloader PRIVATE "${rml_backends}/RmlUi_Renderer_GL3.cpp" "${rml_backends}/RmlUi_Platform_SDL.cpp")
+    target_include_directories(modloader PRIVATE "${rml_backends}")
+    target_compile_definitions(modloader PRIVATE MODLOADER_FRONTEND RMLUI_SDL_VERSION_MAJOR=3)
+    set(montserrat "${MODLOADER_ROOT}/third_party/montserrat/fonts/ttf")
+    set(frontend_fonts "${montserrat}/Montserrat-Regular.ttf" "${montserrat}/Montserrat-SemiBold.ttf" "${montserrat}/Montserrat-Bold.ttf"
+        "${MODLOADER_ROOT}/third_party/teko/fonts/ttf/Teko-Bold.ttf")
+    add_custom_target(modloader_frontend_assets
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets/frontend" "$<TARGET_FILE_DIR:modloader>/assets/frontend"
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets/adapters" "$<TARGET_FILE_DIR:modloader>/adapters"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${frontend_fonts} "$<TARGET_FILE_DIR:modloader>/assets/frontend/"
+        VERBATIM)
+    add_dependencies(modloader modloader_frontend_assets)
+    install(DIRECTORY assets/frontend DESTINATION bin/assets COMPONENT Client)
+    install(DIRECTORY assets/adapters DESTINATION bin COMPONENT Client)
+    install(FILES ${frontend_fonts} DESTINATION bin/assets/frontend COMPONENT Client)
+endif()
 if (WIN32)
     target_compile_definitions(modloader PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_link_libraries(modloader PRIVATE ws2_32 bcrypt)

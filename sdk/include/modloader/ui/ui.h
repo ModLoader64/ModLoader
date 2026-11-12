@@ -60,6 +60,6 @@ private:
 };
 
 // Runs after On_Ui
-[[nodiscard]] Subscription Subscribe(Function<void()> frame);
+[[nodiscard]] Subscription Subscribe(std::function<void()> frame);
 
 } // namespace ModLoader::Ui

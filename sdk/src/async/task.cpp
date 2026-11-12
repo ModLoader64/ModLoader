@@ -11,7 +11,7 @@ namespace {
 
 struct Job {
     ModLoader::Promise_Core::Reference promise;
-    ModLoader::Function<void()> work;
+    std::function<void()> work;
 };
 
 thread_local u32 sTaskDepth;
@@ -22,7 +22,7 @@ bool ModLoader::Task::Detail::Is_Cancelled(u32 promise) {
     return ModLoader_Host_Task_Cancelled() != 0 || Promise_Core::Get_State(promise) != Promise_Core::State::Pending;
 }
 
-bool ModLoader::Task::Submit(u32 promise, Function<void()> work) {
+bool ModLoader::Task::Submit(u32 promise, std::function<void()> work) {
     if (!work || Promise_Core::Get_State(promise) != Promise_Core::State::Pending) {
         Promise_Core::Reject(promise, Error::Failed);
         return false;

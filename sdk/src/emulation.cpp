@@ -13,11 +13,7 @@ namespace {
 
 } // namespace
 
-u32 ModLoader::Emulation::Listen(Function<void(const Event& event)> listener) {
-    return sListeners.Add(std::move(listener));
-}
-
-ModLoader::Subscription ModLoader::Emulation::Subscribe(Function<void(const Event&)> listener) {
+ModLoader::Subscription ModLoader::Emulation::Subscribe(std::function<void(const Event&)> listener) {
     return sListeners.Subscribe(std::move(listener));
 }
 
@@ -25,10 +21,6 @@ void ModLoader::Runtime::Listeners_Shutdown() {
     Config_Shutdown();
     Ui_Shutdown();
     sListeners.Close();
-}
-
-void ModLoader::Emulation::Unlisten(u32 listener) {
-    sListeners.Remove(listener);
 }
 
 void ModLoader::Emulation::Pause() {

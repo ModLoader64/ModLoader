@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 
 #include <memory>
 #include <utility>
@@ -10,7 +10,7 @@ namespace ModLoader {
 namespace Detail {
 
 struct Subscription_State {
-    Function<void()> cleanup;
+    std::function<void()> cleanup;
 
     void Reset() {
         if (auto release = std::exchange(cleanup, {})) {
@@ -29,7 +29,7 @@ class Subscription {
 public:
     Subscription() = default;
 
-    explicit Subscription(Function<void()> cleanup) {
+    explicit Subscription(std::function<void()> cleanup) {
         if (cleanup) {
             state = std::make_shared<Detail::Subscription_State>(std::move(cleanup));
         }

@@ -26,7 +26,6 @@ public:
 
     bool Load_Image(const std::string& path, Game_Image& out_image) override;
     void Pack_Controls(std::span<const f32> values, std::vector<u8>& out_state) const override;
-    void Register_Natives() override;
     bool Start(Runtime& owner) override;
     bool Map_Address(u32 processor, u64 address, u32& out_space, u64& out_offset) const override;
     u64 Fixed_Address(u32 processor, u32 space, u64 offset) const override;
