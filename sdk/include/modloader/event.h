@@ -9,7 +9,7 @@ namespace ModLoader {
 template<typename... Arguments>
 class Event {
 public:
-    using Callback = Function<void(Arguments...)>;
+    using Callback = std::function<void(Arguments...)>;
 
     constexpr Event() = default;
     Event(const Event&) = delete;

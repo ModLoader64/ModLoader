@@ -3,6 +3,9 @@
 #include <modloader/types.h>
 #include <modloader_module.h>
 
+#define MODLOADER_IMPORT(name) __attribute__((import_module("modloader"), import_name(name)))
+#define MODLOADER_EXPORT(name) __attribute__((export_name(name)))
+
 struct ModLoader_Input_Frame;
 struct ModLoader_Input_Binding;
 
@@ -30,8 +33,6 @@ MODLOADER_IMPORT("memory_peek") u64 ModLoader_Host_Memory_Peek(u32 processor, u6
 MODLOADER_IMPORT("memory_poke") u64 ModLoader_Host_Memory_Poke(u32 processor, u64 address, const void* data, u64 size);
 MODLOADER_IMPORT("image_resize") s32 ModLoader_Host_Image_Resize(u64 size);
 MODLOADER_IMPORT("translate_address") u64 ModLoader_Host_Translate_Address(u32 processor, u64 address);
-MODLOADER_IMPORT("hypercall_allocate") u32 ModLoader_Host_Hypercall_Allocate();
-MODLOADER_IMPORT("hypercall_register") u32 ModLoader_Host_Hypercall_Register(u32 id, u64 handler);
 MODLOADER_IMPORT("lobby_status") void ModLoader_Host_Lobby_Status(ModLoader_Lobby_Status* status, u64 size);
 MODLOADER_IMPORT("lobby_member") u32 ModLoader_Host_Lobby_Member(u32 index, ModLoader_Lobby_Member* member, u64 size);
 MODLOADER_IMPORT("lobby_send") u32 ModLoader_Host_Lobby_Send(const char* topic, u64 topic_length, const void* data, u64 size, u32 transport);
@@ -115,9 +116,6 @@ MODLOADER_IMPORT("socket_packet_send_to") u32 ModLoader_Host_Socket_Packet_Send_
 MODLOADER_IMPORT("lobby_packet_follow") u32 ModLoader_Host_Lobby_Packet_Follow(u32 event, const char* type, u64 length, u32 enabled);
 MODLOADER_IMPORT("asm_assemble")
 s64 ModLoader_Host_Asm_Assemble(u64 origin, const char* source, u64 source_length, void* output, u64 capacity, char* error, u64 error_capacity);
-MODLOADER_IMPORT("sig_scan") u64 ModLoader_Host_Sig_Scan(u32 space, const char* pattern, u64 length, u64 from, u64 to);
-MODLOADER_IMPORT("sig_scan_unique")
-u64 ModLoader_Host_Sig_Scan_Unique(u32 space, const char* pattern, u64 length, u64 from, u64 to);
 MODLOADER_IMPORT("asm_disassemble")
 u32 ModLoader_Host_Asm_Disassemble(u32 instruction, u64 pc, char* out, u64 capacity);
 MODLOADER_IMPORT("breakpoint_add") u32 ModLoader_Host_Breakpoint_Add(u32 processor, u64 address, u64 size, u32 access, u64 handler);

@@ -63,7 +63,7 @@ bool Textures::Source::Is_Enabled() const {
     return ModLoader_Host_Texture_Source_Enabled(handle) != 0;
 }
 
-Subscription Textures::Changed_Event::Subscribe(Function<void(const Source_Change&)> callback) const {
+Subscription Textures::Changed_Event::Subscribe(std::function<void(const Source_Change&)> callback) const {
     return sChanges.Subscribe(std::move(callback));
 }
 

@@ -38,7 +38,6 @@ public:
     Patch_Code& operator=(const Patch_Code&) = delete;
 
     bool Create_Destination(Guest::uptr source, Guest::uptr destination);
-    bool Create_Hypercall(Guest::uptr source, Hypercall::Handle id, Patch_Mode mode, Patch::Preserve preserve, std::span<const u8> canonical = {});
     bool Create_Assembly(Guest::uptr source, std::string_view assembly, Patch_Mode mode, Patch::Preserve preserve, std::span<const u8> canonical = {});
     bool Create_Bytes(Guest::uptr source, std::span<const u8> bytes);
     bool Prepare_Relocation(Guest::uptr destination, Guest::usize capacity, Relocation& relocation) const;

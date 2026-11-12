@@ -63,6 +63,7 @@ Presenter::~Presenter() {
     if (gamepad != nullptr) {
         SDL_CloseGamepad(gamepad);
     }
+    Toolbar_Set_Gamepad(nullptr);
 
     if (ui != nullptr) {
         Ui_Windows_Stop();
@@ -358,6 +359,12 @@ bool Presenter::Pump() {
             if (gamepad == nullptr) {
                 gamepad = SDL_OpenGamepad(event.gdevice.which);
                 Enable_Gyro();
+                Toolbar_Set_Gamepad(gamepad);
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_REMAPPED:
+            if (gamepad != nullptr && SDL_GetGamepadID(gamepad) == event.gdevice.which) {
+                Toolbar_Set_Gamepad(gamepad);
             }
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
@@ -365,6 +372,7 @@ bool Presenter::Pump() {
                 SDL_CloseGamepad(gamepad);
                 gamepad = nullptr;
                 Enable_Gyro();
+                Toolbar_Set_Gamepad(nullptr);
             }
             break;
         case SDL_EVENT_KEY_DOWN:

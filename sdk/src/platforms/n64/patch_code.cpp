@@ -2,6 +2,7 @@
 #include "relocate.h"
 
 #include <modloader/platforms/n64/platform.h>
+#include <modloader/platforms/n64/assembler.h>
 #include <modloader/guest/memory.h>
 #include <modloader_bytes.h>
 #include <disassembler.h>
@@ -17,33 +18,9 @@ bool Range_Valid(Guest::uptr address, Guest::usize size) {
     return size != 0 && static_cast<u64>(address) + size <= static_cast<u64>(std::numeric_limits<Guest::uptr>::max()) + 1;
 }
 
-bool Is_Hypercall(u32 instruction) {
-    auto function = static_cast<::N64::Special_Function>(instruction & 63);
-    return instruction >> 26 == 0 && (function == ::N64::Special_Function::Hypercall || function == ::N64::Special_Function::Hypercallr);
-}
-
 bool Entry_Valid(Guest::uptr address) {
     u8 previous[4];
     return address < 4 || !Read_Code(address - 4, previous) || !::N64::Disassembler(Bytes::Read_Be32(previous), address - 4).Analyze().hasDelaySlot;
-}
-
-bool Source_Valid(Guest::uptr address, std::span<const u8> bytes) {
-    for (Guest::usize offset = 0; offset < bytes.size(); offset += 4) {
-        if (Is_Hypercall(Bytes::Read_Be32(bytes.data() + offset))) {
-            return false;
-        }
-    }
-
-    u32 first = Bytes::Read_Be32(bytes.data());
-    auto operation = static_cast<::N64::Opcode>(first >> 26);
-    if (operation == ::N64::Opcode::J || operation == ::N64::Opcode::Jal) {
-        Guest::uptr target = ((address + 4) & 0xF0000000u) | ((first & 0x03FFFFFFu) << 2);
-        u8 entry[4];
-        if (Read_Code(target, entry) && Is_Hypercall(Bytes::Read_Be32(entry))) {
-            return false;
-        }
-    }
-    return true;
 }
 
 Guest::usize Context_Size(std::span<const u8> bytes, Guest::uptr address, Patch_Mode mode) {
@@ -126,10 +103,6 @@ bool Patch_Code::Begin(Guest::uptr source, Patch_Mode placement, Patch::Preserve
         }
     }
 
-    if (!Source_Valid(source, saved)) {
-        return false;
-    }
-
     mode = placement;
     preserve = preservation;
     address = source;
@@ -138,7 +111,9 @@ bool Patch_Code::Begin(Guest::uptr source, Patch_Mode placement, Patch::Preserve
     payloadSize = static_cast<Guest::usize>(bytes.size());
     destinationCapacity = static_cast<Guest::usize>(capacity);
     original = std::move(saved);
-    payload.assign(bytes.begin(), bytes.end());
+    if (placement == Patch_Mode::Inline) {
+        payload.assign(bytes.begin(), bytes.end());
+    }
     patched.resize(source_size);
     direct = external;
     created = true;
@@ -155,16 +130,6 @@ bool Patch_Code::Begin(Guest::uptr source, Patch_Mode placement, Patch::Preserve
 
 bool Patch_Code::Create_Destination(Guest::uptr source, Guest::uptr target) {
     return Begin(source, Patch_Mode::Detour, Patch::Preserve::None, {}, true, target);
-}
-
-bool Patch_Code::Create_Hypercall(Guest::uptr source, Hypercall::Handle id, Patch_Mode placement, Patch::Preserve preservation,
-    std::span<const u8> canonical) {
-    if (id > 0xFFFFF) {
-        return false;
-    }
-    u8 bytes[4];
-    Bytes::Write_Be32(bytes, ::N64::Encode_Hypercall(id));
-    return Begin(source, placement, preservation, bytes, false, 0, canonical);
 }
 
 bool Patch_Code::Create_Assembly(Guest::uptr source, std::string_view text, Patch_Mode placement, Patch::Preserve preservation,
@@ -205,14 +170,11 @@ bool Patch_Code::Prepare(std::span<const u8> source, Guest::uptr cave, Guest::us
         return false;
     }
 
-    prepared.destination = payload;
-    if (!assembly.empty()) {
-        auto assembled = Assembler::Assemble(cave, assembly);
-        if (!assembled) {
-            return false;
-        }
-        prepared.destination = Encode(*assembled);
+    auto assembled = Assembler::Assemble(cave, assembly);
+    if (!assembled) {
+        return false;
     }
+    prepared.destination = Encode(*assembled);
 
     if (prepared.destination.size() > capacity || prepared.destination.size() > UINT32_MAX - cave) {
         return false;
@@ -220,7 +182,7 @@ bool Patch_Code::Prepare(std::span<const u8> source, Guest::uptr cave, Guest::us
 
     Guest::usize payload_size = static_cast<Guest::usize>(prepared.destination.size());
     prepared.payloadSize = payload_size;
-    if (!direct && !Payload_Valid(prepared.destination.data(), payload_size, cave)) {
+    if (!Payload_Valid(prepared.destination.data(), payload_size, cave)) {
         return false;
     }
 
@@ -358,7 +320,7 @@ bool Patch_Code::Enable() {
 
     bool changed = current != original;
     Relocation prepared;
-    if (changed && (!Source_Valid(address, current) || !Prepare(current, trampoline, boundCapacity, prepared))) {
+    if (changed && !Prepare(current, trampoline, boundCapacity, prepared)) {
         Disable();
         return false;
     }

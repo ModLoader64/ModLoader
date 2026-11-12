@@ -289,10 +289,6 @@ private:
             return std::nullopt;
         }
 
-        if ((runtime.config.session & MODLOADER_SESSION_GAME) == 0 && runtime.owner != nullptr) {
-            runtime.owner->Register_Platform_Natives(platform);
-        }
-
         usize index = runtimes.size();
         runtimePaths.emplace(path, index);
         runtimeHashes.emplace(loaded.fingerprint, index);

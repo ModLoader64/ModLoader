@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/ui/rml_keys.h>
 #include <modloader/subscription.h>
 #include <modloader/types.h>
@@ -33,7 +33,7 @@ enum class Phase : u32 {
 };
 
 struct Event;
-using Listener = Function<void(Event& event)>;
+using Listener = std::function<void(Event& event)>;
 
 // Borrowed handle; operations fail after the element is removed or its document/window is closed
 class Element {

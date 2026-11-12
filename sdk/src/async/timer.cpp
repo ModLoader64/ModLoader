@@ -14,7 +14,7 @@ struct Timer_Record {
     u64 clock;
     u64 deadline;
     u64 period;
-    ModLoader::Function<void()> callback;
+    std::function<void()> callback;
     std::weak_ptr<ModLoader::Detail::Subscription_State> subscription;
 };
 
@@ -60,7 +60,7 @@ void Retire_Timer(const Timer_Record& timer) {
     }
 }
 
-std::shared_ptr<Timer_Record> Add_Timer(ModLoader::Clock clock, u64 count, u64 period, ModLoader::Function<void()> callback) {
+std::shared_ptr<Timer_Record> Add_Timer(ModLoader::Clock clock, u64 count, u64 period, std::function<void()> callback) {
     if (sStoppingTimers || sNextId == static_cast<ModLoader::Timer::Handle>(-1) || !callback || !Follow_Clock(static_cast<u64>(clock), true)) {
         return {};
     }
@@ -78,7 +78,7 @@ std::shared_ptr<Timer_Record> Add_Timer(ModLoader::Clock clock, u64 count, u64 p
     return timer;
 }
 
-ModLoader::Subscription Subscribe_Timer(ModLoader::Clock clock, u64 count, u64 period, ModLoader::Function<void()> callback) {
+ModLoader::Subscription Subscribe_Timer(ModLoader::Clock clock, u64 count, u64 period, std::function<void()> callback) {
     auto timer = Add_Timer(clock, count, period, std::move(callback));
     if (timer == nullptr) {
         return {};
@@ -92,21 +92,21 @@ ModLoader::Subscription Subscribe_Timer(ModLoader::Clock clock, u64 count, u64 p
 
 } // namespace
 
-ModLoader::Timer::Handle ModLoader::Timer::Timeout(Clock clock, u64 count, Function<void()> callback) {
+ModLoader::Timer::Handle ModLoader::Timer::Timeout(Clock clock, u64 count, std::function<void()> callback) {
     auto timer = Add_Timer(clock, count, 0, std::move(callback));
     return timer != nullptr ? timer->id : 0;
 }
 
-ModLoader::Timer::Handle ModLoader::Timer::Interval(Clock clock, u64 count, Function<void()> callback) {
+ModLoader::Timer::Handle ModLoader::Timer::Interval(Clock clock, u64 count, std::function<void()> callback) {
     auto timer = Add_Timer(clock, count, count != 0 ? count : 1, std::move(callback));
     return timer != nullptr ? timer->id : 0;
 }
 
-ModLoader::Subscription ModLoader::Timer::Schedule(Clock clock, u64 count, Function<void()> callback) {
+ModLoader::Subscription ModLoader::Timer::Schedule(Clock clock, u64 count, std::function<void()> callback) {
     return Subscribe_Timer(clock, count, 0, std::move(callback));
 }
 
-ModLoader::Subscription ModLoader::Timer::Repeat(Clock clock, u64 count, Function<void()> callback) {
+ModLoader::Subscription ModLoader::Timer::Repeat(Clock clock, u64 count, std::function<void()> callback) {
     return Subscribe_Timer(clock, count, count != 0 ? count : 1, std::move(callback));
 }
 

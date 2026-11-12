@@ -14,7 +14,6 @@ namespace ModLoader::N64::Detail {
 namespace {
 
 constexpr u32 gChainMagic = 0x4D4C5043;
-Hypercall::Handle sChainOwner = 0;
 u32 sNextChain = 1;
 
 enum Preservation_Flags : u32 {
@@ -539,13 +538,7 @@ bool Patch_Chain::Enable() {
             return false;
         }
 
-        if (sChainOwner == 0) {
-            sChainOwner = Hypercall::Allocate();
-            if (sChainOwner == 0) {
-                return false;
-            }
-        }
-        own.chain = (static_cast<u64>(sChainOwner) << 32) | sNextChain++;
+        own.chain = (static_cast<u64>(own.entry) << 32) | sNextChain++;
     }
 
     own.linked = true;

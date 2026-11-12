@@ -17,8 +17,8 @@ namespace {
 
 using Access = Net::Detail::Socket_Access;
 using Endpoint = Access::Endpoint;
-using Packet_Callback = Function<void(const Packet_Context&, std::span<const u8>)>;
-using Socket_Callback = Function<void(const Socket&)>;
+using Packet_Callback = std::function<void(const Packet_Context&, std::span<const u8>)>;
+using Socket_Callback = std::function<void(const Socket&)>;
 
 enum class Handler_Kind { Packet, Accept, Close, Connection };
 
@@ -33,7 +33,7 @@ struct Handler {
     Packet_Callback packet;
     Socket_Callback lifecycle;
     u32 eventKind = 0;
-    Function<void(const void*)> connection;
+    std::function<void(const void*)> connection;
     std::weak_ptr<ModLoader::Detail::Subscription_State> subscription;
 };
 
@@ -282,7 +282,7 @@ Socket Net::Detail::Shared_Socket(bool server, std::string_view owner) {
     return socket;
 }
 
-Subscription Net::Detail::Subscribe_Connection(const Socket& socket, u32 kind, Function<void(const void*)> callback) {
+Subscription Net::Detail::Subscribe_Connection(const Socket& socket, u32 kind, std::function<void(const void*)> callback) {
     if (!callback || Access::Is_Raw(socket)) {
         return {};
     }
@@ -311,10 +311,6 @@ u32 Socket::Register(std::string_view type, u32 version, u64 minimum_size, u64 m
     return Add(std::move(handler));
 }
 
-u32 Socket::Register_Packet(std::string_view type, u32 version, u64 maximum_size, Packet_Callback callback) const {
-    return Register(type, version, 0, maximum_size, std::move(callback));
-}
-
 void Socket::Unregister(u32 token) const {
     for (Handler& handler : sHandlers) {
         if (handler.id == token && token != 0 && Access::Key(handler.socket) == Access::Key(*this)) {
@@ -325,28 +321,28 @@ void Socket::Unregister(u32 token) const {
     Compact();
 }
 
-u32 Socket::On_Accept(Socket_Callback callback) const {
+Subscription Socket::Subscribe_Accept(Socket_Callback callback) const {
     if (!callback || endpoint != Endpoint::Tcp) {
-        return 0;
+        return {};
     }
 
     Handler handler;
     handler.socket = *this;
     handler.kind = Handler_Kind::Accept;
     handler.lifecycle = std::move(callback);
-    return Add(std::move(handler));
+    return Own_Registration(Add(std::move(handler)));
 }
 
-u32 Socket::On_Close(Socket_Callback callback) const {
+Subscription Socket::Subscribe_Close(Socket_Callback callback) const {
     if (!callback || !Access::Is_Raw(*this)) {
-        return 0;
+        return {};
     }
 
     Handler handler;
     handler.socket = *this;
     handler.kind = Handler_Kind::Close;
     handler.lifecycle = std::move(callback);
-    return Add(std::move(handler));
+    return Own_Registration(Add(std::move(handler)));
 }
 
 Subscription Socket::Own_Registration(u32 token) const {
@@ -364,15 +360,7 @@ Subscription Socket::Own_Registration(u32 token) const {
 }
 
 Subscription Socket::Subscribe(std::string_view type, u32 version, u64 maximum_size, Packet_Callback callback) const {
-    return Own_Registration(Register_Packet(type, version, maximum_size, std::move(callback)));
-}
-
-Subscription Socket::Subscribe_Accept(Socket_Callback callback) const {
-    return Own_Registration(On_Accept(std::move(callback)));
-}
-
-Subscription Socket::Subscribe_Close(Socket_Callback callback) const {
-    return Own_Registration(On_Close(std::move(callback)));
+    return Own_Registration(Register(type, version, 0, maximum_size, std::move(callback)));
 }
 
 bool Socket::Send(std::string_view type, u32 version, std::span<const u8> data, Transport transport) const {

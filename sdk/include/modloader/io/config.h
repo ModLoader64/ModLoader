@@ -1,7 +1,7 @@
 // Values persist in <data>/config/<module>.json
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/subscription.h>
 #include <modloader/types.h>
 
@@ -41,10 +41,7 @@ std::optional<std::string> Get(std::string_view key);
 f64 Get_Float(std::string_view key);
 s64 Get_Int(std::string_view key);
 bool Set(std::string_view key, std::string_view value); // Saves and queues a change event
-// Runs at the next refresh; repeated changes to the same key are combined; returns 0 on failure
-u32 On_Change(Function<void(std::string_view key)> handler);
-void Remove_On_Change(u32 handler);
-[[nodiscard]] Subscription Subscribe(Function<void(std::string_view)> handler);
+[[nodiscard]] Subscription Subscribe(std::function<void(std::string_view key)> handler);
 
 static inline bool Get_Bool(std::string_view key) {
     return Get(key) == "true";

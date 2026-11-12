@@ -11,7 +11,7 @@ File::Handle File_Open(std::string_view folder, std::string_view path, File::Mod
 bool File_Delete(std::string_view folder, std::string_view path);
 bool File_Exists(std::string_view folder, std::string_view path);
 bool File_Create_Directory(std::string_view folder, std::string_view path);
-bool File_List(std::string_view folder, std::string_view path, Function<void(std::string_view, bool)> each);
+bool File_List(std::string_view folder, std::string_view path, std::function<void(std::string_view, bool)> each);
 std::optional<std::vector<u8>> File_Read_All(std::string_view folder, std::string_view path);
 bool File_Write_All(std::string_view folder, std::string_view path, const void* data, u64 size);
 Promise<std::vector<u8>> File_Read_All_Async(std::string_view folder, std::string_view path);
@@ -23,8 +23,7 @@ std::optional<std::string> Config_Get(std::string_view folder, std::string_view 
 f64 Config_Get_Float(std::string_view folder, std::string_view key);
 s64 Config_Get_Int(std::string_view folder, std::string_view key);
 bool Config_Set(std::string_view folder, std::string_view key, std::string_view value);
-u32 Config_On_Change(std::string_view folder, Function<void(std::string_view)> handler);
-Subscription Config_Subscribe(std::string_view folder, Function<void(std::string_view)> handler);
+Subscription Config_Subscribe(std::string_view folder, std::function<void(std::string_view)> handler);
 
 Json::Document Json_Load(std::string_view folder, std::string_view path);
 bool Json_Save(std::string_view folder, std::string_view path, const Json::Document& document);

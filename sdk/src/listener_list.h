@@ -9,7 +9,7 @@ namespace ModLoader::Runtime {
 template<typename Event, usize EventCount = 1>
 class Listener_List {
 public:
-    using Listener = Function<void(const Event&)>;
+    using Listener = std::function<void(const Event&)>;
 
     explicit Listener_List(const std::array<u32, EventCount>& events) : events(events) {
     }
@@ -30,7 +30,7 @@ public:
         return id;
     }
 
-    Subscription Scope(u32 id, Function<void()> cleanup) {
+    Subscription Scope(u32 id, std::function<void()> cleanup) {
         return listeners.Scope(id, std::move(cleanup));
     }
 

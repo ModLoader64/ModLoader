@@ -59,7 +59,7 @@ struct Source_Change {
 
 struct Changed_Event {
     // Match Source_Change::source against Source::Handle() to observe a particular source
-    [[nodiscard]] Subscription Subscribe(Function<void(const Source_Change&)> callback) const;
+    [[nodiscard]] Subscription Subscribe(std::function<void(const Source_Change&)> callback) const;
 };
 
 inline constexpr Changed_Event Event_Changed;

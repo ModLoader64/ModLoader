@@ -1,10 +1,8 @@
 #include "../../internal.h"
-#include "callbacks.h"
 #include "patch_code.h"
 #include "patch_chain.h"
 
 #include <modloader/platforms/n64/code.h>
-#include <modloader/guest/memory.h>
 #include <modloader/logger.h>
 #include <modloader_n64_adapter.h>
 
@@ -21,8 +19,6 @@ struct Patch_State {
     bool chained = false;
     Guest::Heap* heap = nullptr;
     Guest::Heap::Handle allocation = 0;
-    Hypercall::Handle hypercall = 0;
-    u64 callbackToken = 0;
     bool requested = false;
     bool pinned = false;
     Patch_State* next = nullptr;
@@ -42,10 +38,7 @@ constexpr u32 gPatchEvents[] = {
     MODLOADER_EVENT_FRAME, MODLOADER_EVENT_N64_RSP_TASK,
 };
 
-using N64::Detail::Add_Callback;
-using N64::Detail::Remove_Callback;
-using N64::Detail::Callback_Active;
-using N64::Detail::Callbacks_Stopping;
+bool sStopping = false;
 
 using N64::Detail::Ram_Range;
 using N64::Detail::Physical_Address;
@@ -58,12 +51,7 @@ void Follow_Patch_Events(bool follow) {
 }
 
 bool Destroy_State(Patch_State* state) {
-    if (Callback_Active(state->callbackToken) ||
-        (state->chained && !state->chain.Destroy()) || !state->code.Destroy()) {
-        return false;
-    }
-
-    if (state->hypercall != 0 && ModLoader_Host_Hypercall_Register(state->hypercall, 0) == 0) {
+    if ((state->chained && !state->chain.Destroy()) || !state->code.Destroy()) {
         return false;
     }
 
@@ -88,9 +76,7 @@ bool Destroy_State(Patch_State* state) {
         state->heap->Free(state->allocation);
     }
 
-    u64 token = state->callbackToken;
     delete state;
-    Remove_Callback(token);
     return true;
 }
 
@@ -130,7 +116,8 @@ bool Bind_Storage(Patch_State& state, const N64::Patch::Storage& storage) {
 
 } // namespace
 
-void ModLoader::Runtime::Patches_Shutdown() {
+void ModLoader::Runtime::Platform_Shutdown() {
+    sStopping = true;
     while (sPatches != nullptr) {
         if (!Destroy_State(sPatches)) {
             Logger::Error("N64 patch restore failed during shutdown");
@@ -145,9 +132,7 @@ void ModLoader::Runtime::Platform_Maintain(u32 event) {
     }
 
     for (Patch_State* state = sPatches; state != nullptr; state = state->next) {
-        if (!Callback_Active(state->callbackToken)) {
-            Set_Enabled(*state, state->requested);
-        }
+        Set_Enabled(*state, state->requested);
     }
 }
 
@@ -168,7 +153,7 @@ ModLoader::N64::Patch& ModLoader::N64::Patch::operator=(Patch&& other) noexcept 
 }
 
 bool ModLoader::N64::Patch::Finish_Create(Patch_State* created, Guest::Heap* heap, Storage storage) {
-    bool valid = created->code.Is_Created() && !Callbacks_Stopping();
+    bool valid = created->code.Is_Created() && !sStopping;
     Guest::uptr source = created->code.Address();
     Guest::usize size = created->code.Affected_Size();
     for (Patch_State* other = sPatches; valid && other != nullptr; other = other->next) {
@@ -198,7 +183,6 @@ bool ModLoader::N64::Patch::Finish_Create(Patch_State* created, Guest::Heap* hea
                     switch (phase) {
                     case Guest::Heap::Move_Phase::Prepare:
                         return (!created->pinned || move.from == move.to) &&
-                            !Callback_Active(created->callbackToken) &&
                             Valid_Storage(*created, {move.to, move.newSize}) &&
                             (!created->chained || created->chain.Prepare_Relocation(move.to, move.newSize));
                     case Guest::Heap::Move_Phase::Commit:
@@ -246,7 +230,7 @@ bool ModLoader::N64::Patch::Create_Inline(Guest::uptr source, std::span<const u8
 }
 
 bool ModLoader::N64::Patch::Create_Assembly(Guest::uptr source, Guest::Heap* heap, Storage storage, Preserve preserve, std::string_view assembly) {
-    if (state != nullptr || Callbacks_Stopping()) {
+    if (state != nullptr || sStopping) {
         return false;
     }
 
@@ -266,36 +250,6 @@ bool ModLoader::N64::Patch::Create_Assembly(Guest::uptr source, Guest::Heap* hea
     return Finish_Create(created, heap, storage);
 }
 
-bool ModLoader::N64::Patch::Create_Callback(Guest::uptr source, Guest::Heap* heap, Storage storage, Preserve preserve, Callback handler) {
-    if (state != nullptr || Callbacks_Stopping() || !handler) {
-        return false;
-    }
-
-    bool detour = heap != nullptr || storage.address != 0;
-    std::vector<u8> canonical;
-    if (detour && !Patch_Chain::Capture(source, 8, canonical)) {
-        return false;
-    }
-
-    auto* created = new (std::nothrow) Patch_State;
-    if (created == nullptr) {
-        return false;
-    }
-
-    created->chained = detour;
-    created->callbackToken = Add_Callback(std::move(handler));
-    created->hypercall = created->callbackToken != 0 ? Hypercall::Allocate() : 0;
-    if (created->hypercall != 0 &&
-        ModLoader_Host_Hypercall_Register(created->hypercall, created->callbackToken) != 0) {
-        created->code.Create_Hypercall(source, created->hypercall, detour ? Patch_Mode::Detour : Patch_Mode::Inline, preserve, canonical);
-    }
-    return Finish_Create(created, heap, storage);
-}
-
-bool ModLoader::N64::Patch::Create_Inline(Guest::uptr source, Callback handler) {
-    return Create_Callback(source, nullptr, {}, Preserve::None, std::move(handler));
-}
-
 bool ModLoader::N64::Patch::Create_Redirect(Guest::uptr source, Guest::uptr destination) {
     if (state != nullptr) {
         return false;
@@ -313,16 +267,8 @@ bool ModLoader::N64::Patch::Create_Detour(Guest::uptr source, Guest::Heap& heap,
     return Create_Assembly(source, &heap, {}, preserve, assembly);
 }
 
-bool ModLoader::N64::Patch::Create_Detour(Guest::uptr source, Guest::Heap& heap, Preserve preserve, Callback handler) {
-    return Create_Callback(source, &heap, {}, preserve, std::move(handler));
-}
-
 bool ModLoader::N64::Patch::Create_Detour(Guest::uptr source, Storage storage, Preserve preserve, std::string_view assembly) {
     return storage.address != 0 && storage.capacity != 0 && Create_Assembly(source, nullptr, storage, preserve, assembly);
-}
-
-bool ModLoader::N64::Patch::Create_Detour(Guest::uptr source, Storage storage, Preserve preserve, Callback handler) {
-    return storage.address != 0 && storage.capacity != 0 && Create_Callback(source, nullptr, storage, preserve, std::move(handler));
 }
 
 bool ModLoader::N64::Patch::Enable() {
@@ -352,7 +298,7 @@ bool ModLoader::N64::Patch::Disable() {
 }
 
 bool ModLoader::N64::Patch::Allow_Relocation() {
-    if (state == nullptr || Callback_Active(state->callbackToken)) {
+    if (state == nullptr) {
         return false;
     }
 

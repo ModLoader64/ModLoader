@@ -73,24 +73,15 @@ bool ModLoader::Detail::Config_Set(std::string_view folder, std::string_view key
     return ModLoader_Host_Setting_Set(folder.data(), folder.size(), terminated_key.c_str(), terminated_value.c_str()) == 0;
 }
 
-u32 ModLoader::Detail::Config_On_Change(std::string_view folder, Function<void(std::string_view)> handler) {
+ModLoader::Subscription ModLoader::Detail::Config_Subscribe(std::string_view folder, std::function<void(std::string_view)> handler) {
     if (!handler) {
-        return 0;
+        return {};
     }
-    return sHandlers.Add([folder = std::string(folder), handler = std::move(handler)](const Setting_Change& change) {
+    return sHandlers.Subscribe([folder = std::string(folder), handler = std::move(handler)](const Setting_Change& change) {
         if (folder == change.folder) {
             handler(change.key);
         }
     });
-}
-
-void ModLoader::Config::Remove_On_Change(u32 handler) {
-    sHandlers.Remove(handler);
-}
-
-ModLoader::Subscription ModLoader::Detail::Config_Subscribe(std::string_view folder, Function<void(std::string_view)> handler) {
-    const u32 id = Config_On_Change(folder, std::move(handler));
-    return sHandlers.Scope(id, [id] { Config::Remove_On_Change(id); });
 }
 
 void ModLoader::Runtime::Config_Shutdown() {

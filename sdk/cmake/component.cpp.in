@@ -27,6 +27,6 @@ constinit const ModLoader::Runtime::Component gComponent{
 }
 
 extern "C" void @prefix@_Register() asm("modloader_component.@name@");
-extern "C" MODLOADER_EXPORT("modloader_component.@name@") __attribute__((visibility("default"))) void @prefix@_Register() {
+extern "C" __attribute__((export_name("modloader_component.@name@"), visibility("default"))) void @prefix@_Register() {
     ModLoader::Runtime::Register_Component(&gComponent);
 }

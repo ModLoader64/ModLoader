@@ -115,12 +115,6 @@ struct Runtime_Symbol {
     Module* definer;
 };
 
-struct Hypercall_Entry {
-    Module* owner;
-    u64 handler;
-    bool registered;
-};
-
 struct Module_Breakpoint {
     u32 id;
     Module* owner;
@@ -143,14 +137,12 @@ public:
     ~Runtime();
 
     void Load_Modules(std::span<const std::string> paths, const Runtime_Progress& progress);
-    void Register_Platform_Natives(std::string_view identifier);
 
     void Enter_Thread();
     void Leave_Thread();
     void Init_Modules();
     void Shutdown_Modules();
     void Event(u32 event, u64 time, const void* data, u64 size);
-    s32 Hypercall(u32 processor, u32 hypercall_id, void* state, u64 size);
     void Breakpoint(const ModLoader_Break& hit, void* state, u64 size);
     void Hold(u32 reason, const std::function<bool()>& held);
     void Notify(u32 event);
@@ -168,7 +160,6 @@ public:
 
     bool Map_Address(u64 address, u32& out_space, u64& out_offset, u32 processor = 0) const;
     void Invalidate(u64 address, u64 size, u32 processor = 0);
-    u32 Allocate_Hypercall_Id();
     void Deliver(u32 event, const void* record, u64 record_size);
     void Subscribe(Module& module, u32 event, bool enabled);
     void Request_Dispatch(Module& module);
@@ -201,8 +192,6 @@ public:
     std::vector<u64> windows;
     std::unordered_map<std::string, u32> spaceIndices;
     u32 ramSpace = 0;
-    std::unordered_map<u32, Hypercall_Entry> hypercalls;
-    u32 nextHypercallId = 1;
     std::unordered_map<std::string, Runtime_Symbol> symbols;
     Guest_Layouts layouts;
     Texture_Manager textures;

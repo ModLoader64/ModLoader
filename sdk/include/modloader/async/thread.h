@@ -1,41 +1,9 @@
 #pragma once
 
-#include <modloader/function.h>
 #include <modloader/types.h>
 
 namespace ModLoader::Thread {
 
-// Owns a joinable thread
-// Join or detach before destruction or move-assignment; otherwise std::terminate is called
-class Handle {
-public:
-    Handle() = default;
-    explicit Handle(u64 id)
-        : id(id) {
-    }
-
-    ~Handle();
-
-    Handle(const Handle&) = delete;
-    Handle& operator=(const Handle&) = delete;
-    Handle(Handle&& other) noexcept;
-    Handle& operator=(Handle&& other) noexcept;
-
-    bool Join();   // Wait for completion and release the handle, returns false on failure
-    bool Detach(); // Release the handle without waiting
-
-    bool Is_Valid() const {
-        return id != 0;
-    }
-
-private:
-    u64 id = 0; // the thread's pthread_t
-};
-
-// Copies/owns the callable; returns an invalid handle on failure
-Handle Start(Function<void()> entry);
-
-void Sleep(u32 milliseconds); // Blocks the calling thread
 bool Is_Emulation_Thread();
 
 u64 Milliseconds(); // monotonic clock

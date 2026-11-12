@@ -176,10 +176,6 @@ bool Game_Session::Start_Adapter(const std::string& lobby_name) {
         Session_Of(host).On_Event(event, time, data, size);
     };
 
-    callbacks.hypercall = [](void* host, uint32_t processor, uint32_t id, void* state, uint64_t size) {
-        return Session_Of(host).runtime->Hypercall(processor, id, state, size);
-    };
-
     callbacks.breakpoint = [](void* host, const ModLoader_Break* hit, void* state, uint64_t size) {
         Session_Of(host).runtime->Breakpoint(*hit, state, size);
     };

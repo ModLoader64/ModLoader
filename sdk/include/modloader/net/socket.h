@@ -39,17 +39,17 @@ public:
     bool Is_Open() const;
     void Close();
 
-    // Callback data is an aligned copy borrowed until the callback returns; returns 0 on failure
+    // Callback data is an aligned copy borrowed until the callback returns
     template<typename T, typename Callable>
-    u32 Register_Packet(const Packet_Type<T>& type, Callable callback) const {
+    [[nodiscard]] Subscription Subscribe(const Packet_Type<T>& type, Callable callback) const {
         static_assert(std::is_invocable_r_v<void, Callable&, const Packet_Context&, const T*>);
         if constexpr (std::is_pointer_v<Callable>) {
             if (callback == nullptr) {
-                return 0;
+                return {};
             }
         }
 
-        return Register(type.name, type.version, sizeof(T), sizeof(T),
+        return Own_Registration(Register(type.name, type.version, sizeof(T), sizeof(T),
             [callback = std::move(callback)](const Packet_Context& context, std::span<const u8> bytes) mutable {
                 T* value = static_cast<T*>(aligned_alloc(alignof(T), sizeof(T)));
                 if (value == nullptr) {
@@ -58,27 +58,13 @@ public:
                 __builtin_memcpy(value, bytes.data(), sizeof(T));
                 callback(context, static_cast<const T*>(value));
                 free(value);
-            });
+            }));
     }
 
-    // Raw packet data expires when the callback returns; names are copied; 0 means registration failed
-    u32 Register_Packet(std::string_view type, u32 version, u64 maximum_size,
-        Function<void(const Packet_Context&, std::span<const u8>)> callback) const;
-    void Unregister(u32 handler) const; // Removes a registration made on this socket
-    // Raw sockets only
-    u32 On_Accept(Function<void(const Socket&)> callback) const;
-    u32 On_Close(Function<void(const Socket&)> callback) const;
-
-    // Keep the Subscription alive to keep its handler registered
-    template<typename T, typename Callable>
-    [[nodiscard]] Subscription Subscribe(const Packet_Type<T>& type, Callable callback) const {
-        return Own_Registration(Register_Packet(type, std::move(callback)));
-    }
-
-    [[nodiscard]] Subscription Subscribe(std::string_view type, u32 version, u64 maximum_size,
-        Function<void(const Packet_Context&, std::span<const u8>)> callback) const;
-    [[nodiscard]] Subscription Subscribe_Accept(Function<void(const Socket&)> callback) const;
-    [[nodiscard]] Subscription Subscribe_Close(Function<void(const Socket&)> callback) const;
+    // Raw packet data expires when the callback returns
+    [[nodiscard]] Subscription Subscribe(std::string_view type, u32 version, u64 maximum_size, std::function<void(const Packet_Context&, std::span<const u8>)> callback) const;
+    [[nodiscard]] Subscription Subscribe_Accept(std::function<void(const Socket&)> callback) const;
+    [[nodiscard]] Subscription Subscribe_Close(std::function<void(const Socket&)> callback) const;
 
     // Packet sends copy the payload before returning
     // Lobby UDP is unreliable, server relayed, and limited to gMaxLobbyUdpPacketSize bytes
@@ -138,8 +124,8 @@ private:
     enum class Endpoint : u32 { Tcp, Udp, Lobby, Server };
     struct State;
 
-    u32 Register(std::string_view type, u32 version, u64 minimum_size, u64 maximum_size,
-        Function<void(const Packet_Context&, std::span<const u8>)> callback) const;
+    u32 Register(std::string_view type, u32 version, u64 minimum_size, u64 maximum_size, std::function<void(const Packet_Context&, std::span<const u8>)> callback) const;
+    void Unregister(u32 handler) const;
     Subscription Own_Registration(u32 handler) const;
     u32 Id() const;
 
@@ -184,12 +170,12 @@ Promise<Socket> Tcp_Connect_Async(std::string_view host, u16 port, u32 timeout_m
 
 namespace Detail {
 Socket Shared_Socket(bool server, std::string_view owner);
-Subscription Subscribe_Connection(const Socket& socket, u32 kind, Function<void(const void*)> callback);
+Subscription Subscribe_Connection(const Socket& socket, u32 kind, std::function<void(const void*)> callback);
 
 template<typename T>
 class Connection_Event {
 public:
-    [[nodiscard]] Subscription Subscribe(Function<void(const T&)> callback) const {
+    [[nodiscard]] Subscription Subscribe(std::function<void(const T&)> callback) const {
         if (!callback) {
             return {};
         }
@@ -213,7 +199,7 @@ private:
 template<>
 class Connection_Event<void> {
 public:
-    [[nodiscard]] Subscription Subscribe(Function<void()> callback) const {
+    [[nodiscard]] Subscription Subscribe(std::function<void()> callback) const {
         if (!callback) {
             return {};
         }

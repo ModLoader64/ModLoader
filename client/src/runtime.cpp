@@ -1,6 +1,5 @@
 #include "module.h"
 #include <algorithm>
-#include <unordered_set>
 #include "ui/imgui_bindings.h"
 #include "ui/windows.h"
 #include "modloader_events.h"
@@ -12,19 +11,11 @@ namespace {
 constexpr u64 gPageSize = 4096;
 
 bool sWamrReady = false;
-std::unordered_set<std::string> sRegisteredPlatforms;
 
-void Register_Platform(Platform& platform) {
-    if (sRegisteredPlatforms.insert(platform.identifier).second) {
-        platform.Register_Natives();
-    }
-}
-
-bool Start_Wamr(Platform& platform) {
+bool Start_Wamr() {
     RuntimeInitArgs init_arguments = {};
 
     if (sWamrReady) {
-        Register_Platform(platform);
         return true;
     }
 
@@ -37,7 +28,6 @@ bool Start_Wamr(Platform& platform) {
     Core_Register_Natives();
     Layouts_Register_Natives();
     N64_Tools_Register_Natives();
-    Register_Platform(platform);
     Threads_Register_Natives();
     Tasks_Register_Natives();
     Files_Register_Natives();
@@ -60,19 +50,12 @@ bool Start_Wamr(Platform& platform) {
 
 Runtime::Runtime(Runtime_Config runtime_config) : config(std::move(runtime_config)), platform(*config.platform), textures(*this) {}
 
-void Runtime::Register_Platform_Natives(std::string_view identifier) {
-    if (!sRegisteredPlatforms.contains(std::string(identifier))) {
-        auto module_platform = Platform_Create(identifier);
-        Register_Platform(*module_platform);
-    }
-}
-
 std::unique_ptr<Runtime> Runtime::Create(Runtime_Config config) {
     std::unique_ptr<Runtime> runtime;
     u64 mapped_size = 0;
     bool has_ram = false;
 
-    if (!Start_Wamr(*config.platform)) {
+    if (!Start_Wamr()) {
         return nullptr;
     }
 
@@ -131,10 +114,6 @@ Runtime::~Runtime() {
 
 bool Runtime::On_Emulation_Thread() const {
     return Thread_Current_Id() == emulationThreadId;
-}
-
-u32 Runtime::Allocate_Hypercall_Id() {
-    return nextHypercallId != 0 && nextHypercallId <= platform.lastHypercall ? nextHypercallId++ : 0;
 }
 
 const Module* Runtime::Savestates_Blocker() const {
@@ -202,10 +181,6 @@ void Runtime::Release(Module& module) {
     Files_Release_Owner(module);
     Breakpoints_Release_Owner(module);
     layouts.Release(module);
-
-    std::erase_if(hypercalls, [&](const auto& entry) {
-        return entry.second.owner == &module;
-    });
 
     std::erase_if(symbols, [&](const auto& symbol) {
         return symbol.second.definer == &module;
@@ -421,25 +396,6 @@ void Runtime::Dispatch_Pending() {
             module->Call(module->dispatch, "pending callbacks");
         }
     }
-}
-
-s32 Runtime::Hypercall(u32 processor, u32 hypercall_id, void* state, u64 size) {
-    if (processor >= config.processors.size() || size != config.processors[processor].stateSize || (size != 0 && state == nullptr)) {
-        return 0;
-    }
-
-    auto found = hypercalls.find(hypercall_id);
-    if (found != hypercalls.end() && found->second.registered) {
-        const Hypercall_Entry entry = found->second;
-        bool handled = false;
-        if (!entry.owner->Call_Handler(entry.handler, processor, state, size, handled)) {
-            return 0;
-        }
-        Flush_Dirty_Pages();
-        return handled ? 1 : 0;
-    }
-
-    return 0;
 }
 
 bool Runtime::Resize_Image(u64 size) {

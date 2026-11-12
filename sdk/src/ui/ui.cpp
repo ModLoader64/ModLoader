@@ -8,7 +8,7 @@ struct Ui_Frame {};
 [[clang::no_destroy]] ModLoader::Runtime::Listener_List<Ui_Frame> sFrames({MODLOADER_EVENT_UI});
 } // namespace
 
-ModLoader::Subscription ModLoader::Ui::Subscribe(Function<void()> frame) {
+ModLoader::Subscription ModLoader::Ui::Subscribe(std::function<void()> frame) {
     if (!frame) {
         return {};
     }

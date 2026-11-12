@@ -3,6 +3,7 @@
 #include "base.h"
 
 union SDL_Event;
+struct SDL_Gamepad;
 class Texture_Manager;
 class Settings_Group;
 
@@ -31,6 +32,7 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state);
 bool Toolbar_Draw_Setting(Settings_Group& group, std::string_view key);
 bool Toolbar_Capture_Event(const SDL_Event& event);
 bool Toolbar_Capturing();
+void Toolbar_Set_Gamepad(SDL_Gamepad* gamepad);
 
 s32 Binding_Pad_Button(std::string_view name);
 s32 Binding_Mouse_Button(std::string_view name);

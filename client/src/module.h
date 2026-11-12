@@ -45,7 +45,6 @@ struct Module {
     wasm_function_inst_t eventInit = nullptr;
     wasm_function_inst_t eventShutdown = nullptr;
     wasm_function_inst_t eventPhase = nullptr;
-    wasm_function_inst_t eventHypercall = nullptr;
     wasm_function_inst_t eventBreakpoint = nullptr;
     Module_Context uiContext;
     wasm_function_inst_t uiPhase = nullptr;
@@ -94,7 +93,6 @@ struct Module {
     bool Call(wasm_function_inst_t function, const char* what, std::initializer_list<wasm_val_t> arguments = {}, wasm_val_t* result = nullptr);
     bool Execute(wasm_exec_env_t context, wasm_function_inst_t function, u32 result_count, wasm_val_t* results, u32 argument_count, wasm_val_t* arguments, const char* what = "a module call");
     void Trap(wasm_exec_env_t context, const char* what, bool stack = true);
-    bool Call_Handler(u64 handler, u32 processor, void* state, u64 size, bool& out_result);
     void* Event_Memory(u64 size);
     bool Follows(u32 event) const;
     void Deliver(u32 event, const void* record, u64 record_size, bool subscribed = true);

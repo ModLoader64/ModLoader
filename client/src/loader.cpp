@@ -168,7 +168,6 @@ bool Runtime::Instantiate(Module& loaded) {
     module->eventInit = wasm_runtime_lookup_function(module->instance, "modloader_event_init");
     module->eventShutdown = wasm_runtime_lookup_function(module->instance, "modloader_event_shutdown");
     module->eventPhase = wasm_runtime_lookup_function(module->instance, "modloader_event_phase");
-    module->eventHypercall = wasm_runtime_lookup_function(module->instance, "modloader_event_hypercall");
     module->eventBreakpoint = wasm_runtime_lookup_function(module->instance, "modloader_event_breakpoint");
     module->eventReserve = wasm_runtime_lookup_function(module->instance, "modloader_event_buffer");
     if (module->eventReserve == nullptr || module->eventPhase == nullptr) {

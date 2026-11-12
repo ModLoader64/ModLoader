@@ -82,6 +82,15 @@ s32 Processor_Describe(Module& module, u32 index, u64 pointer, u64 size) {
     return 0;
 }
 
+void Bind_Global(const wasm_global_inst_t& global, u64 address) {
+    if (global.kind == WASM_I64) {
+        *static_cast<u64*>(global.global_data) = address;
+    }
+    else {
+        *static_cast<u32*>(global.global_data) = static_cast<u32>(address);
+    }
+}
+
 void Symbol_Define(Module& module, u64 name, u64 length, u64 address) {
     Runtime& runtime = module.runtime;
     std::optional<std::string_view> text = module.Text(name, length);
@@ -91,6 +100,18 @@ void Symbol_Define(Module& module, u64 name, u64 length, u64 address) {
     }
 
     auto [found, inserted] = runtime.symbols.emplace(std::string(*text), Runtime_Symbol { address, &module });
+    if (found->second.definer == &module && found->second.address != address) {
+        found->second.address = address;
+        const std::string global = MODLOADER_SYMBOL_PREFIX + found->first;
+        for (const auto& loaded : runtime.modules) {
+            for (const Module_Guest_Global& binding : loaded->guestGlobals) {
+                if (binding.name == global) {
+                    Bind_Global(binding.global, address);
+                }
+            }
+        }
+    }
+
     if (!inserted && found->second.address != address) {
         Log_Warning(module.name.c_str(), "symbol %.*s: 0x%llX conflicts with %s (0x%llX)",
             static_cast<int>(text->size()), text->data(), static_cast<unsigned long long>(address),
@@ -123,12 +144,7 @@ bool Bind_Symbols(Module& module) {
             continue;
         }
 
-        if (global.kind == WASM_I64) {
-            *static_cast<u64*>(global.global_data) = *address;
-        }
-        else {
-            *static_cast<u32*>(global.global_data) = static_cast<u32>(*address);
-        }
+        Bind_Global(global, *address);
     }
 
     if (missing) {
@@ -155,27 +171,6 @@ u64 Translate_Address(Module& module, u32 processor, u64 address) {
     u64 offset;
 
     return module.runtime.Map_Address(address, space, offset, processor) ? module.runtime.platform.Fixed_Address(processor, space, offset) : 0;
-}
-
-u32 Hypercall_Allocate(Module& module) {
-    u32 id = module.runtime.Allocate_Hypercall_Id();
-
-    if (id != 0) {
-        module.runtime.hypercalls.emplace(id, Hypercall_Entry { &module, 0, false });
-    }
-
-    return id;
-}
-
-bool Hypercall_Register(Module& module, u32 id, u64 handler) {
-    auto found = module.runtime.hypercalls.find(id);
-    if (found != module.runtime.hypercalls.end() && found->second.owner == &module) {
-        found->second.handler = handler;
-        found->second.registered = true;
-        return true;
-    }
-
-    return false;
 }
 
 u64 Savestate_Block_Create(Module& module, u64 owner, u64 owner_length, u64 reason, u64 length) {
@@ -306,15 +301,6 @@ NativeSymbol sNatives[] = {
     }),
     Native("translate_address", "(iI)I", [](wasm_exec_env_t exec_env, u64* slots) {
         slots[0] = Require_Emulation_Thread(exec_env, "ModLoader::gPlatform.Translate") ? Translate_Address(Module_Of(exec_env), static_cast<u32>(slots[0]), slots[1]) : 0;
-    }),
-    Native("hypercall_allocate", "()i", [](wasm_exec_env_t exec_env, u64* slots) {
-        slots[0] = Require_Emulation_Thread(exec_env, "Hypercall::Allocate") ? Hypercall_Allocate(Module_Of(exec_env)) : 0;
-    }),
-    Native("hypercall_register", "(iI)i", [](wasm_exec_env_t exec_env, u64* slots) {
-        slots[0] = Require_Emulation_Thread(exec_env, "Hypercall::Register") &&
-                Hypercall_Register(Module_Of(exec_env), static_cast<u32>(slots[0]), slots[1])
-            ? 1
-            : 0;
     }),
     Native("savestate_block", "(IIII)I", [](wasm_exec_env_t exec_env, u64* slots) {
         slots[0] = Require_Emulation_Thread(exec_env, "Savestate::Block")

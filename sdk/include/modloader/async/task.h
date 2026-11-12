@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/async/promise.h>
 
 #include <type_traits>
@@ -29,7 +29,7 @@ private:
 };
 
 // queue work for an existing promise
-bool Submit(u32 promise, Function<void()> work);
+bool Submit(u32 promise, std::function<void()> work);
 
 namespace Detail {
 

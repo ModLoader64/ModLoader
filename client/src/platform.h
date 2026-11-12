@@ -19,7 +19,6 @@ public:
     const char* imageSpace = nullptr;
     bool bigEndian = false;
     bool savestates = false;
-    u32 lastHypercall = UINT32_MAX;
     u32 clockCount = 0;
     std::span<const char* const> controls;
 
@@ -30,8 +29,6 @@ public:
     virtual void Pack_Controls(std::span<const f32>, std::vector<u8>& out_state) const {
         out_state.clear();
     }
-
-    virtual void Register_Natives() {}
 
     virtual bool Start(Runtime&) {
         return true;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <modloader/function.h>
+#include <functional>
 #include <modloader/async/clock.h>
 #include <modloader/types.h>
 
@@ -23,9 +23,9 @@ void Retain(u32 handle);
 void Release(u32 handle);
 bool Resolve(u32 handle, std::shared_ptr<const void> value = {});
 bool Reject(u32 handle, Error error);
-u64 Then(u32 handle, Function<void(const void*)> callback);
-u64 Catch(u32 handle, Function<void(Error)> callback);
-u64 Finally(u32 handle, Function<void()> callback);
+u64 Then(u32 handle, std::function<void(const void*)> callback);
+u64 Catch(u32 handle, std::function<void(Error)> callback);
+u64 Finally(u32 handle, std::function<void()> callback);
 bool Remove_Continuation(u32 handle, u64 continuation);
 bool Timeout(u32 handle, Clock clock, u64 count);
 void Registration_Failed(u32 handle);
@@ -53,12 +53,12 @@ private:
 
 template<typename T>
 struct Value_Callback {
-    using Type = Function<void(const T&)>;
+    using Type = std::function<void(const T&)>;
 };
 
 template<>
 struct Value_Callback<void> {
-    using Type = Function<void()>;
+    using Type = std::function<void()>;
 };
 
 } // namespace Promise_Core

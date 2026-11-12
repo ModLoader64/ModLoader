@@ -105,9 +105,7 @@ u32 Relocate_Transfer(u32 word, const Instruction_Info& info, u32 delay_slot, Gu
 } // namespace
 
 bool Delay_Slot_Valid(u32 word, Guest::uptr address) {
-    Special_Function function = static_cast<Special_Function>(word & 0x3F);
-    bool hypercall = static_cast<Opcode>(word >> 26) == Opcode::Special && (function == Special_Function::Hypercall || function == Special_Function::Hypercallr);
-    return !hypercall && Disassembler(word, address).Analyze().control == Control_None;
+    return Disassembler(word, address).Analyze().control == Control_None;
 }
 
 bool Payload_Valid(const u8* bytes, Guest::usize size, Guest::uptr origin) {
