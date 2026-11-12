@@ -39,6 +39,8 @@ class Presenter {
     };
 
 public:
+    static constexpr u32 gPorts = 4;
+
     struct Config {
         std::string title;
         u32 windowWidth = 960;
@@ -82,7 +84,12 @@ public:
     void Set_Input_Dead_Zone(f32 dead_zone) {
         pendingInput.DeadZone = dead_zone;
     }
-    void Bind(u32 control, std::string_view binding);
+    void Bind(u32 port, u32 control, std::string_view binding);
+    void Set_Dead_Zone(u32 port, f32 dead_zone) {
+        if (port < gPorts) {
+            deadZones[port] = dead_zone;
+        }
+    }
     void Bind_Hotkey(Hotkey hotkey, std::string_view binding);
     using Bound_Input = ModLoader_Input_Binding;
     static std::vector<Bound_Input> Parse_Binding(std::string_view binding);
@@ -181,13 +188,14 @@ private:
     bool mouseCaptured = false;
     bool backgroundControllerInput = false;
     std::atomic<s32> rumbleRequested = -1;
-    std::vector<std::vector<Bound_Input>> controls;
+    std::vector<std::vector<Bound_Input>> controls[gPorts];
+    f32 deadZones[gPorts] = {};
     std::vector<Bound_Input> hotkeys[static_cast<u32>(Hotkey::Count)];
     bool hotkeyAxisPast[static_cast<u32>(Hotkey::Count)] = {};
     std::atomic<u32> hotkeysPressed = 0;
     const Platform* platform = nullptr;
     mutable std::mutex inputLock;
-    std::vector<u8> inputState;
+    std::vector<u8> inputState[gPorts];
     ModLoader_Input_Frame rawInput = {};
     ModLoader_Input_Frame pendingInput = {};
     u64 gyroTimestamp[SDL_SENSOR_GYRO_R + 1] = {};

@@ -5,8 +5,6 @@
 
 namespace {
 
-bool sOpen;
-
 const char* State_Name(u32 state) {
     switch (state) {
     case MODLOADER_TEXTURE_DISABLED:
@@ -85,21 +83,7 @@ void Draw_Source(Texture_Manager& manager, const Texture_Source_View& source, us
 
 } // namespace
 
-void Textures_Menu() {
-    ImGui::MenuItem("Texture replacements", nullptr, &sOpen);
-}
-
-void Textures_Build(Texture_Manager& manager) {
-    if (!sOpen) {
-        return;
-    }
-
-    ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 42.0f, ImGui::GetFontSize() * 22.0f), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin("Texture replacements", &sOpen)) {
-        ImGui::End();
-        return;
-    }
-
+void Textures_Draw(Texture_Manager& manager) {
     ImGui::TextWrapped("Higher sources override matching textures from lower sources");
     ImGui::Spacing();
     std::vector<Texture_Source_View> sources = manager.Snapshot();
@@ -121,5 +105,4 @@ void Textures_Build(Texture_Manager& manager) {
         }
         ImGui::EndTable();
     }
-    ImGui::End();
 }

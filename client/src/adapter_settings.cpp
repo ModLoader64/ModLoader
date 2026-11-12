@@ -3,13 +3,17 @@
 #include "settings.h"
 
 void Game_Session::Bind_Control(std::string_view key, std::string_view value) {
-    if (!key.starts_with("controller1.")) {
+    if (!key.starts_with("controller") || key.size() < 12 || key[11] != '.') {
         return;
     }
+    u32 port = static_cast<u32>(key[10] - '1');
     key.remove_prefix(12);
+    if (key == "dead_zone") {
+        presenter->Set_Dead_Zone(port, strtof(std::string(value).c_str(), nullptr));
+    }
     for (u32 index = 0; index < platform->controls.size(); index++) {
         if (key == platform->controls[index]) {
-            presenter->Bind(index, value);
+            presenter->Bind(port, index, value);
         }
     }
 }
@@ -32,7 +36,7 @@ void Game_Session::Describe_Adapter_Settings(bool bind) {
         if (adapter->settingDescribe(handle, index, &setting) != 0 || !adapterSettings->Add(setting)) {
             continue;
         }
-        if (bind && setting.type == MODLOADER_SETTING_BINDING) {
+        if (bind) {
             Bind_Control(setting.key, setting.value);
         }
         if ((setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0) {

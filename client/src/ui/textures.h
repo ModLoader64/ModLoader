@@ -2,5 +2,4 @@
 
 class Texture_Manager;
 
-void Textures_Menu();
-void Textures_Build(Texture_Manager& manager);
+void Textures_Draw(Texture_Manager& manager);

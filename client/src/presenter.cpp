@@ -383,6 +383,11 @@ bool Presenter::Pump() {
             }
             if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_RETURN && (event.key.mod & SDL_KMOD_ALT)) {
                 SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
+                Toolbar_Hide_Menu(false);
+                break;
+            }
+            if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F12 && (event.key.mod & SDL_KMOD_SHIFT)) {
+                Toolbar_Hide_Menu(!Toolbar_Menu_Hidden());
                 break;
             }
             if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F5) {

@@ -115,7 +115,10 @@ void Game_Session::Load_Modules() {
 }
 
 void Game_Session::Build_Ui() {
+    std::string emulator = adapter->adapterIdentifier;
+    emulator[0] = static_cast<char>(toupper(emulator[0]));
     Toolbar_State state = {
+        std::move(emulator),
         pauseRequested,
         clientSettings.Get("hotkeys.pause"),
         clientSettings.Get("hotkeys.restart"),

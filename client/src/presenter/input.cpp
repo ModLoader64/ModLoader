@@ -14,10 +14,10 @@ using ModLoader::Detail::Input_Axis_Value;
 
 bool Presenter::Poll_Input(u32 port, void* out_state, u64 size) const {
     std::lock_guard lock(inputLock);
-    if (port != 0 || out_state == nullptr || size != inputState.size() || inputState.empty()) {
+    if (port >= gPorts || out_state == nullptr || size != inputState[port].size() || inputState[port].empty()) {
         return false;
     }
-    memcpy(out_state, inputState.data(), size);
+    memcpy(out_state, inputState[port].data(), size);
     return true;
 }
 
@@ -29,7 +29,9 @@ void Presenter::Set_Rumble(u32 port, u32 strength) {
 
 void Presenter::Set_Controls(const Platform& controlled) {
     platform = &controlled;
-    controls.assign(controlled.controls.size(), {});
+    for (std::vector<std::vector<Bound_Input>>& port : controls) {
+        port.assign(controlled.controls.size(), {});
+    }
 }
 
 void Presenter::Set_Background_Controller_Input(bool enabled) {
@@ -81,9 +83,9 @@ std::vector<Presenter::Bound_Input> Presenter::Parse_Binding(std::string_view bi
     return inputs;
 }
 
-void Presenter::Bind(u32 control, std::string_view binding) {
-    if (control < controls.size()) {
-        controls[control] = Parse_Binding(binding);
+void Presenter::Bind(u32 port, u32 control, std::string_view binding) {
+    if (port < gPorts && control < controls[port].size()) {
+        controls[port][control] = Parse_Binding(binding);
     }
 }
 
@@ -163,15 +165,18 @@ void Presenter::Update_Input() {
         game_controls.MouseButtons = 0;
     }
 
-    std::vector<f32> values(controls.size());
-    for (usize control = 0; control < controls.size(); control++) {
-        values[control] = Input_Binding_Value(controls[control], game_controls);
+    std::vector<f32> values[gPorts];
+    for (u32 port = 0; port < gPorts; port++) {
+        game_controls.DeadZone = deadZones[port];
+        for (const std::vector<Bound_Input>& control : controls[port]) {
+            values[port].push_back(Input_Binding_Value(control, game_controls));
+        }
     }
 
     std::lock_guard lock(inputLock);
     rawInput = frame;
-    if (platform != nullptr) {
-        platform->Pack_Controls(values, inputState);
+    for (u32 port = 0; platform != nullptr && port < gPorts; port++) {
+        platform->Pack_Controls(values[port], inputState[port]);
     }
 }
 

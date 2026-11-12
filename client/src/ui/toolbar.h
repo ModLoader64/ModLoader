@@ -18,6 +18,7 @@ enum Toolbar_Action : u32 {
 };
 
 struct Toolbar_State {
+    std::string emulator; // names its menu and settings window
     bool paused;
     std::string pauseBinding;
     std::string restartBinding;
@@ -32,6 +33,8 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state);
 bool Toolbar_Draw_Setting(Settings_Group& group, std::string_view key);
 bool Toolbar_Capture_Event(const SDL_Event& event);
 bool Toolbar_Capturing();
+void Toolbar_Hide_Menu(bool hidden);
+bool Toolbar_Menu_Hidden();
 void Toolbar_Set_Gamepad(SDL_Gamepad* gamepad);
 
 s32 Binding_Pad_Button(std::string_view name);

@@ -11,7 +11,8 @@
 namespace {
 
 constexpr s16 gCaptureAxis = 24000;
-constexpr const char* gMenuOrder[] = { "Video", "Input", "Emulation", "Plugins" };
+constexpr const char* gCategories[] = { "Video", "Input", "Emulation" };
+constexpr const char* gTexturesPage = "Texture replacements";
 constexpr const char* gFaceButtonNames[] = { "south", "east", "west", "north" };
 
 struct Change {
@@ -31,6 +32,10 @@ u32 sCaptureMouseButtons;
 u32 sCaptureIgnoredMouse;
 SDL_Keymod sCaptureMouseModifiers;
 constexpr const char* gMouseNames[] = { "left", "middle", "right", "side1", "side2" };
+
+bool sMenuHidden;
+bool sSettingsOpen;
+std::string sSettingsPage;
 
 ImGuiID sEditId;
 f64 sEditNumber;
@@ -286,13 +291,31 @@ void Draw_Number(Settings_Group& group, const Setting& setting) {
     ImGui::TextUnformatted(setting.label.c_str());
 }
 
-void Draw_Choice(Settings_Group& group, const Setting& setting) {
+void Draw_Choice(Settings_Group& group, const Setting& setting, bool window) {
     std::vector<Setting_Choice> choices = Setting_Choices(setting.choices);
     std::string_view shown = setting.value;
     std::string label;
 
     for (const Setting_Choice& choice : choices) {
         shown = choice.value == setting.value ? choice.label : shown;
+    }
+
+    if (window) {
+        label = shown;
+        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10.0f);
+        if (ImGui::BeginCombo("##choice", label.c_str())) {
+            for (const Setting_Choice& choice : choices) {
+                label = choice.label;
+                if (ImGui::Selectable(label.c_str(), choice.value == setting.value)) {
+                    sChanges.push_back({ &group, setting.key, std::string(choice.value) });
+                }
+            }
+            ImGui::EndCombo();
+        }
+        Draw_Tooltip(setting);
+        ImGui::SameLine();
+        ImGui::TextUnformatted(setting.label.c_str());
+        return;
     }
 
     label = setting.label + ": " + std::string(shown) + "###choice";
@@ -353,23 +376,30 @@ void Draw_Text(Settings_Group& group, const Setting& setting) {
     ImGui::TextUnformatted(setting.label.c_str());
 }
 
-void Draw_Setting(Settings_Group& group, const Setting& setting, const char* shortcut = nullptr) {
+// window: widgets for a window, else for a menu
+void Draw_Setting(Settings_Group& group, const Setting& setting, const char* shortcut = nullptr, bool window = false) {
+    bool enabled = setting.value == "true";
+
     ImGui::PushID(&group);
     ImGui::PushID(setting.key.c_str());
     ImGui::BeginDisabled((setting.flags & MODLOADER_SETTING_DISABLED) != 0);
     switch (setting.type) {
     case MODLOADER_SETTING_BOOL:
-        if (ImGui::MenuItem(setting.label.c_str(), shortcut, setting.value == "true")) {
+        if (window ? ImGui::Checkbox(setting.label.c_str(), &enabled) : ImGui::MenuItem(setting.label.c_str(), shortcut, enabled)) {
             sChanges.push_back({ &group, setting.key, setting.value == "true" ? "false" : "true" });
         }
         Draw_Tooltip(setting);
+        if (window && shortcut != nullptr) {
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", shortcut);
+        }
         break;
     case MODLOADER_SETTING_INT:
     case MODLOADER_SETTING_FLOAT:
         Draw_Number(group, setting);
         break;
     case MODLOADER_SETTING_CHOICE:
-        Draw_Choice(group, setting);
+        Draw_Choice(group, setting, window);
         break;
     case MODLOADER_SETTING_BINDING:
         Draw_Binding(group, setting);
@@ -383,17 +413,28 @@ void Draw_Setting(Settings_Group& group, const Setting& setting, const char* sho
     ImGui::PopID();
 }
 
-void Draw_Unthrottled_Limit() {
+void Draw_Unthrottled_Limit(bool window) {
     for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
         if (group->Name() != "client_settings") {
             continue;
         }
         for (const Setting& setting : group->Entries()) {
             if (setting.key == "emulation.unthrottled_speed_percent") {
-                Draw_Setting(*group, setting);
+                Draw_Setting(*group, setting, nullptr, window);
                 return;
             }
         }
+    }
+}
+
+// The speed limit shows its hotkey, and the unthrottled limit after it
+void Draw_Page_Setting(Settings_Group& group, const Setting& setting, const Toolbar_State& state, bool window) {
+    bool speed_limit = (setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0;
+    std::string shortcut;
+
+    Draw_Setting(group, setting, speed_limit ? Shortcut(state.unthrottledBinding, shortcut) : nullptr, window);
+    if (speed_limit) {
+        Draw_Unthrottled_Limit(window);
     }
 }
 
@@ -412,24 +453,13 @@ bool Page_Has(std::string_view path) {
     return false;
 }
 
-void Draw_Page(const std::string& path, const Toolbar_State& state) {
+std::vector<std::string> Child_Pages(const std::string& path) {
     std::vector<std::string> children;
     std::string_view child;
-    std::string shortcut;
 
-    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
     for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
         for (const Setting& setting : group->Entries()) {
-            if (!setting.Is_Visible() || !Page_Within(setting.page, path)) {
-                continue;
-            }
-
-            if (setting.page == path) {
-                bool speed_limit = (setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0;
-                Draw_Setting(*group, setting, speed_limit ? Shortcut(state.unthrottledBinding, shortcut) : nullptr);
-                if (speed_limit) {
-                    Draw_Unthrottled_Limit();
-                }
+            if (!setting.Is_Visible() || !Page_Within(setting.page, path) || setting.page == path) {
                 continue;
             }
 
@@ -440,14 +470,122 @@ void Draw_Page(const std::string& path, const Toolbar_State& state) {
             }
         }
     }
+    return children;
+}
+
+bool Page_Unchosen(std::string_view path) {
+    usize separator = path.rfind('/');
+    if (separator == std::string_view::npos) {
+        return false;
+    }
+
+    for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
+        for (const Setting& setting : group->Entries()) {
+            if (setting.type != MODLOADER_SETTING_CHOICE || setting.page != path.substr(0, separator)) {
+                continue;
+            }
+            for (const Setting_Choice& choice : Setting_Choices(setting.choices)) {
+                if (choice.label == path.substr(separator + 1)) {
+                    return choice.value != setting.value;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void Draw_Page(const std::string& path, const Toolbar_State& state, bool window = false) {
+    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+    for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
+        for (const Setting& setting : group->Entries()) {
+            if (setting.Is_Visible() && setting.page == path) {
+                Draw_Page_Setting(*group, setting, state, window);
+            }
+        }
+    }
 
     ImGui::PopItemFlag();
-    for (const std::string& name : children) {
+    if (window) {
+        return;
+    }
+
+    for (const std::string& name : Child_Pages(path)) {
         if (ImGui::BeginMenu(name.c_str())) {
             Draw_Page(path + "/" + name, state);
             ImGui::EndMenu();
         }
     }
+}
+
+void Draw_Speed_Limit(const Toolbar_State& state) {
+    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+    for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
+        for (const Setting& setting : group->Entries()) {
+            if ((setting.flags & MODLOADER_SETTING_SPEED_LIMIT) != 0 && setting.Is_Visible()) {
+                Draw_Page_Setting(*group, setting, state, false);
+            }
+        }
+    }
+    ImGui::PopItemFlag();
+}
+
+void Open_Settings(const char* page) {
+    sSettingsOpen = true;
+    sSettingsPage = page;
+    ImGui::SetWindowFocus("###emulator_settings");
+}
+
+void Draw_Category(const std::string& path, const char* name) {
+    std::vector<std::string> children = Child_Pages(path);
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+    flags |= children.empty() ? ImGuiTreeNodeFlags_Leaf : 0;
+    flags |= sSettingsPage == path ? ImGuiTreeNodeFlags_Selected : 0;
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(Page_Unchosen(path) ? ImGuiCol_TextDisabled : ImGuiCol_Text));
+    bool open = ImGui::TreeNodeEx(name, flags);
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+        sSettingsPage = path;
+    }
+
+    if (open) {
+        for (const std::string& child : children) {
+            Draw_Category(path + "/" + child, child.c_str());
+        }
+        ImGui::TreePop();
+    }
+}
+
+// Categories on the left, selected settings on the right
+void Draw_Settings(const Toolbar_State& state, std::unique_lock<std::mutex>& lock) {
+    if (!sSettingsOpen) {
+        return;
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 46.0f, ImGui::GetFontSize() * 26.0f), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin((state.emulator + " settings###emulator_settings").c_str(), &sSettingsOpen)) {
+        ImGui::BeginChild("categories", ImVec2(ImGui::GetFontSize() * 15.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+        for (const char* category : gCategories) {
+            if (Page_Has(category)) {
+                Draw_Category(category, category);
+            }
+        }
+        Draw_Category(gTexturesPage, gTexturesPage);
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("page");
+        if (sSettingsPage == gTexturesPage) {
+            lock.unlock();
+            Textures_Draw(state.textures);
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(Page_Unchosen(sSettingsPage) ? ImGuiCol_TextDisabled : ImGuiCol_Text));
+            Draw_Page(sSettingsPage, state, true);
+            ImGui::PopStyleColor();
+        }
+        ImGui::EndChild();
+    }
+    ImGui::End();
 }
 
 std::vector<std::string> Other_Menus() {
@@ -457,7 +595,7 @@ std::vector<std::string> Other_Menus() {
     for (const std::unique_ptr<Settings_Group>& group : Settings_Groups()) {
         for (const Setting& setting : group->Entries()) {
             menu = setting.page.substr(0, setting.page.find('/'));
-            if (!menu.empty() && menu != "ModLoader" && std::find(std::begin(gMenuOrder), std::end(gMenuOrder), menu) == std::end(gMenuOrder) &&
+            if (!menu.empty() && menu != "ModLoader" && menu != "Plugins" && std::find(std::begin(gCategories), std::end(gCategories), menu) == std::end(gCategories) &&
                 std::find(menus.begin(), menus.end(), menu) == menus.end()) {
                 menus.push_back(menu);
             }
@@ -485,65 +623,63 @@ Toolbar_Action Toolbar_Build(const Toolbar_State& state) {
     std::vector<Change> changes;
     std::string shortcut;
 
-    if (!ImGui::BeginMainMenuBar()) {
-        return action;
-    }
-
     {
         std::unique_lock lock = Settings_Lock();
 
-        if (ImGui::BeginMenu("ModLoader")) {
-            action = ImGui::MenuItem(state.paused ? "Resume" : "Pause", Shortcut(state.pauseBinding, shortcut)) ? Toolbar_Action_Pause : action;
-            action = ImGui::MenuItem("Restart", Shortcut(state.restartBinding, shortcut)) ? Toolbar_Action_Restart : action;
-            if (state.savestates) {
-                ImGui::Separator();
-                action = ImGui::MenuItem("Save state", "F5") ? Toolbar_Action_Save_State : action;
-                action = ImGui::MenuItem("Load state", "F7") ? Toolbar_Action_Load_State : action;
-            }
+        if (!sMenuHidden && ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("ModLoader")) {
+                action = ImGui::MenuItem(state.paused ? "Resume" : "Pause", Shortcut(state.pauseBinding, shortcut)) ? Toolbar_Action_Pause : action;
+                action = ImGui::MenuItem("Restart", Shortcut(state.restartBinding, shortcut)) ? Toolbar_Action_Restart : action;
+                if (state.savestates) {
+                    ImGui::Separator();
+                    action = ImGui::MenuItem("Save state", "F5") ? Toolbar_Action_Save_State : action;
+                    action = ImGui::MenuItem("Load state", "F7") ? Toolbar_Action_Load_State : action;
+                }
 
-            if (Page_Has("ModLoader")) {
                 ImGui::Separator();
+                action = ImGui::MenuItem("Lock mouse", Shortcut(state.mouseCaptureBinding, shortcut), state.mouseCaptured) ? Toolbar_Action_Mouse_Capture : action;
                 Draw_Page("ModLoader", state);
-            }
-
-            ImGui::Separator();
-            action = ImGui::MenuItem("Quit") ? Toolbar_Action_Quit : action;
-            ImGui::EndMenu();
-        }
-
-        for (const char* menu : gMenuOrder) {
-            bool video = std::string_view(menu) == "Video";
-            bool input = std::string_view(menu) == "Input";
-            bool settings = Page_Has(menu);
-
-            if ((video || input || settings) && ImGui::BeginMenu(menu)) {
-                if (input) {
-                    action = ImGui::MenuItem("Lock mouse", Shortcut(state.mouseCaptureBinding, shortcut), state.mouseCaptured) ? Toolbar_Action_Mouse_Capture : action;
-                    if (settings) {
-                        ImGui::Separator();
-                    }
+                if (ImGui::MenuItem("Hide menu bar", "Shift+F12")) {
+                    sMenuHidden = true;
                 }
-                Draw_Page(menu, state);
-                if (video) {
-                    if (settings) {
-                        ImGui::Separator();
-                    }
-                    Textures_Menu();
-                }
+
+                ImGui::Separator();
+                action = ImGui::MenuItem("Quit") ? Toolbar_Action_Quit : action;
                 ImGui::EndMenu();
             }
-        }
 
-        for (const std::string& menu : Other_Menus()) {
-            if (ImGui::BeginMenu(menu.c_str())) {
-                Draw_Page(menu, state);
+            if (ImGui::BeginMenu(state.emulator.c_str())) {
+                for (const char* category : gCategories) {
+                    if (Page_Has(category) && ImGui::MenuItem(category)) {
+                        Open_Settings(category);
+                    }
+                }
+                if (ImGui::MenuItem(gTexturesPage)) {
+                    Open_Settings(gTexturesPage);
+                }
+
+                ImGui::Separator();
+                Draw_Speed_Limit(state);
                 ImGui::EndMenu();
             }
+
+            if (Page_Has("Plugins") && ImGui::BeginMenu("Plugins")) {
+                Draw_Page("Plugins", state);
+                ImGui::EndMenu();
+            }
+
+            for (const std::string& menu : Other_Menus()) {
+                if (ImGui::BeginMenu(menu.c_str())) {
+                    Draw_Page(menu, state);
+                    ImGui::EndMenu();
+                }
+            }
+            ImGui::EndMainMenuBar();
         }
+
+        Draw_Settings(state, lock);
     }
 
-    ImGui::EndMainMenuBar();
-    Textures_Build(state.textures);
     changes.swap(sChanges);
     for (const Change& change : changes) {
         change.group->Set(change.key, change.value);
@@ -636,6 +772,14 @@ bool Toolbar_Capture_Event(const SDL_Event& event) {
 
 bool Toolbar_Capturing() {
     return sCaptureGroup != nullptr;
+}
+
+void Toolbar_Hide_Menu(bool hidden) {
+    sMenuHidden = hidden;
+}
+
+bool Toolbar_Menu_Hidden() {
+    return sMenuHidden;
 }
 
 s32 Binding_Pad_Button(std::string_view name) {
