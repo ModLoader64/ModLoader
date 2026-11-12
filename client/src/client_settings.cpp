@@ -17,13 +17,13 @@ constexpr ModLoader_Setting gClientSettings[] = {
       "Filter",
       "Video",
       "The filter used to up or down-scale the image",
-      "nearest\tNearest\nbilinear\tBilinear\nsharp_bilinear\tSharp "
-      "bilinear\narea\tArea\nbicubic\tBicubic\nlanczos\tLanczos\nkaiser\tKaiser",
-      "sharp_bilinear",
+      "area\tArea\nbicubic\tBicubic\nbilinear\tBilinear\nlanczos\tLanczos",
+      "bilinear",
       MODLOADER_SETTING_CHOICE,
       0,
       0.0,
       0.0 },
+    { "sharpness", "Sharpness", "Video", "0: the filter alone; 1: whole pixels with smooth edges", nullptr, "0.25", MODLOADER_SETTING_FLOAT, 0, 0.0, 1.0 },
     { "theme", "UI theme", "Video", "The colors of ModLoader's ImGui windows and menus", "dark\tDark\nlight\tLight", "dark", MODLOADER_SETTING_CHOICE, 0, 0.0, 0.0 },
     { "input.background_controller", "Background controller input", "Input", "Accept controller input while the window is unfocused", nullptr, "false", MODLOADER_SETTING_BOOL, 0, 0.0, 0.0 },
     { "input.dead_zone", "Controller dead zone", "Input", "0: no dead zone; 1: ignore axis input", nullptr, "0.18311106", MODLOADER_SETTING_FLOAT, 0, 0.0, 1.0 },
@@ -72,6 +72,10 @@ Renderer_Scaling Client_Settings::Scaling() const {
 
 Renderer_Filter Client_Settings::Filter() const {
     return Renderer_Filter_From_Name(Get("filter"));
+}
+
+f32 Client_Settings::Sharpness() const {
+    return static_cast<f32>(group->Get_Number("sharpness"));
 }
 
 Ui_Theme Client_Settings::Theme() const {

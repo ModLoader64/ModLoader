@@ -17,13 +17,10 @@ constexpr Name gScalingNames[] = {
 };
 
 constexpr Name gFilterNames[] = {
-    { "nearest", Renderer_Filter_Nearest },
     { "bilinear", Renderer_Filter_Bilinear },
-    { "sharp_bilinear", Renderer_Filter_Sharp_Bilinear },
     { "area", Renderer_Filter_Area },
     { "bicubic", Renderer_Filter_Bicubic },
     { "lanczos", Renderer_Filter_Lanczos },
-    { "kaiser", Renderer_Filter_Kaiser },
 };
 
 u32 From_Name(std::span<const Name> names, std::string_view text) {
@@ -73,6 +70,10 @@ Image_Constants Image_Constants_For(const Renderer_Image& image, u32 surface_wid
     constants.destinationSize[0] = rect[2];
     constants.destinationSize[1] = rect[3];
     constants.filter = image.filter < Renderer_Filter_Count ? image.filter : Renderer_Filter_Bilinear;
+
+    if (rect[2] >= constants.sourceSize[0] && rect[3] >= constants.sourceSize[1]) {
+        constants.sharpness = image.sharpness;
+    }
     return constants;
 }
 

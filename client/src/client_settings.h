@@ -12,6 +12,7 @@ public:
     std::string Get(std::string_view key) const;
     Renderer_Scaling Scaling() const;
     Renderer_Filter Filter() const;
+    f32 Sharpness() const;
     Ui_Theme Theme() const;
     u32 Unthrottled_Speed_Percent() const;
     f32 Input_Dead_Zone() const;

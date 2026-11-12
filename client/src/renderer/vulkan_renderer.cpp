@@ -1,10 +1,25 @@
 #include "vulkan.h"
-#include "shaders.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <string.h>
 
 namespace {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc23-extensions"
+alignas(u32) constexpr u8 gUi_Vertex_Spirv[] = {
+#embed "shaders/ui_vertex.spv"
+};
+alignas(u32) constexpr u8 gUi_Pixel_Spirv[] = {
+#embed "shaders/ui_pixel.spv"
+};
+alignas(u32) constexpr u8 gImage_Vertex_Spirv[] = {
+#embed "shaders/image_vertex.spv"
+};
+alignas(u32) constexpr u8 gImage_Pixel_Spirv[] = {
+#embed "shaders/image_pixel.spv"
+};
+#pragma clang diagnostic pop
+
 constexpr const char* gExternalExtensions[] = {
 #if defined(_WIN32)
     VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,

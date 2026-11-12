@@ -24,7 +24,7 @@ std::unique_ptr<Presenter> Presenter::Create(const Config& config) {
         return nullptr;
     }
 
-    presenter->Set_Picture(config.scaling, config.filter);
+    presenter->Set_Picture(config.scaling, config.filter, config.sharpness);
     presenter->renderer = Renderer::Create();
     scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     scale = scale > 0.0f ? scale : 1.0f;
@@ -254,6 +254,7 @@ bool Presenter::Present() {
         if (shown != nullptr && height > top) {
             image.texture = shown;
             image.filter = filter;
+            image.sharpness = sharpness;
             image.readyValue = std::exchange(shownReady, 0);
             image.viewport[1] = top;
             image.viewport[2] = width;
@@ -315,9 +316,10 @@ void Presenter::Build_Frame() {
     }
 }
 
-void Presenter::Set_Picture(Renderer_Scaling new_scaling, Renderer_Filter new_filter) {
+void Presenter::Set_Picture(Renderer_Scaling new_scaling, Renderer_Filter new_filter, f32 new_sharpness) {
     scaling = new_scaling;
     filter = new_filter;
+    sharpness = new_sharpness;
 }
 
 void Presenter::Set_Theme(Ui_Theme theme) {
@@ -377,6 +379,10 @@ bool Presenter::Pump() {
             break;
         case SDL_EVENT_KEY_DOWN:
             if (SDL_GetKeyboardFocus() != window || (!mouseCaptured && Ui_Windows_Wants_Keyboard())) {
+                break;
+            }
+            if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_RETURN && (event.key.mod & SDL_KMOD_ALT)) {
+                SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
                 break;
             }
             if (!event.key.repeat && event.key.scancode == SDL_SCANCODE_F5) {

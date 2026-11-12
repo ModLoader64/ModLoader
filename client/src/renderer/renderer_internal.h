@@ -8,7 +8,8 @@ struct Image_Constants {
     f32 sourceSize[2];
     f32 destinationSize[2];
     u32 filter;
-    u32 padding[3];
+    f32 sharpness;
+    u32 padding[2];
 };
 
 Image_Constants Image_Constants_For(const Renderer_Image& image, u32 surface_width, u32 surface_height);

@@ -44,7 +44,8 @@ public:
         u32 windowWidth = 960;
         u32 windowHeight = 720;
         Renderer_Scaling scaling = Renderer_Scaling_Fit;
-        Renderer_Filter filter = Renderer_Filter_Sharp_Bilinear;
+        Renderer_Filter filter = Renderer_Filter_Bilinear;
+        f32 sharpness = 0.25f;
         Ui_Theme theme = Ui_Theme::Dark;
         std::string dataDirectory;
     };
@@ -97,7 +98,7 @@ public:
     }
 
     bool Pump();
-    void Set_Picture(Renderer_Scaling scaling, Renderer_Filter filter);
+    void Set_Picture(Renderer_Scaling scaling, Renderer_Filter filter, f32 sharpness);
     void Set_Theme(Ui_Theme theme);
     void Set_Ui(std::function<void()> build) {
         uiBuild = std::move(build);
@@ -142,6 +143,7 @@ private:
 
     Renderer_Scaling scaling;
     Renderer_Filter filter;
+    f32 sharpness;
     SDL_Window* window = nullptr;
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Renderer_Surface> surface;

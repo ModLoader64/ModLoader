@@ -36,7 +36,7 @@ Game_Session::Game_Session(const Run_Options& run_options) : options(run_options
 clientSettings([this](Settings_Group&, const std::string& key, const std::string& value) {
         Bind_Hotkey(key, value);
         unthrottledSpeedPercent = clientSettings.Unthrottled_Speed_Percent();
-        presenter->Set_Picture(clientSettings.Scaling(), clientSettings.Filter());
+        presenter->Set_Picture(clientSettings.Scaling(), clientSettings.Filter(), clientSettings.Sharpness());
         presenter->Set_Theme(clientSettings.Theme());
         presenter->Set_Background_Controller_Input(clientSettings.Get("input.background_controller") == "true");
         presenter->Set_Input_Dead_Zone(clientSettings.Input_Dead_Zone());
@@ -330,6 +330,7 @@ s32 Game_Session::Run() {
     presenter_config.title = "ModLoader - " + image.title + (options.Online() || (!options.offline && !clientSettings.Get("network.server_address").empty()) ? " - " + nickname : "");
     presenter_config.scaling = clientSettings.Scaling();
     presenter_config.filter = clientSettings.Filter();
+    presenter_config.sharpness = clientSettings.Sharpness();
     presenter_config.theme = clientSettings.Theme();
     presenter_config.dataDirectory = options.dataDirectory;
     presenter = Presenter::Create(presenter_config);

@@ -16,13 +16,10 @@ enum Renderer_Scaling : u32 {
 };
 
 enum Renderer_Filter : u32 {
-    Renderer_Filter_Nearest,
     Renderer_Filter_Bilinear,
-    Renderer_Filter_Sharp_Bilinear,
     Renderer_Filter_Area,
     Renderer_Filter_Bicubic,
     Renderer_Filter_Lanczos,
-    Renderer_Filter_Kaiser,
     Renderer_Filter_Count,
 };
 
@@ -75,6 +72,7 @@ struct Renderer_Image {
     u32 viewport[4] = {}; // x, y, width, height
     f32 destination[4] = {}; // relative to viewport
     Renderer_Filter filter = Renderer_Filter_Bilinear;
+    f32 sharpness = 0.0f; // 0: just the filter
     u64 readyValue = 0;
 };
 
