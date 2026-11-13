@@ -560,9 +560,11 @@ IMGUI_IMPORT("ImDrawList_PushClipRectFullScreen") void ImDrawList_PushClipRectFu
 IMGUI_IMPORT("ImDrawList_PopClipRect") void ImDrawList_PopClipRect(u64 list);
 IMGUI_IMPORT("ImDrawList_PushTexture") void ImDrawList_PushTexture(u64 list, u64 tex_ref);
 IMGUI_IMPORT("ImDrawList_PopTexture") void ImDrawList_PopTexture(u64 list);
-IMGUI_IMPORT("ImDrawList_AddLine") void ImDrawList_AddLine(u64 list, u64 p1, u64 p2, ImU32 col, float thickness);
-IMGUI_IMPORT("ImDrawList_AddLineH") void ImDrawList_AddLineH(u64 list, float min_x, float max_x, float y, ImU32 col, float thickness);
-IMGUI_IMPORT("ImDrawList_AddLineV") void ImDrawList_AddLineV(u64 list, float x, float min_y, float max_y, ImU32 col, float thickness);
+IMGUI_IMPORT("ImDrawList_PushDrawFlag") void ImDrawList_PushDrawFlag(u64 list, ImDrawFlags flags, bool enabled);
+IMGUI_IMPORT("ImDrawList_PopDrawFlag") void ImDrawList_PopDrawFlag(u64 list);
+IMGUI_IMPORT("ImDrawList_AddLine") void ImDrawList_AddLine(u64 list, u64 p1, u64 p2, ImU32 col, float thickness, ImDrawFlags flags);
+IMGUI_IMPORT("ImDrawList_AddLineH") void ImDrawList_AddLineH(u64 list, float min_x, float max_x, float y, ImU32 col, float thickness, ImDrawFlags flags);
+IMGUI_IMPORT("ImDrawList_AddLineV") void ImDrawList_AddLineV(u64 list, float x, float min_y, float max_y, ImU32 col, float thickness, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddRect") void ImDrawList_AddRect(u64 list, u64 p_min, u64 p_max, ImU32 col, float rounding, float thickness, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddRectFilled") void ImDrawList_AddRectFilled(u64 list, u64 p_min, u64 p_max, ImU32 col, float rounding, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddRectFilledMultiColor") void ImDrawList_AddRectFilledMultiColor(
@@ -574,15 +576,32 @@ IMGUI_IMPORT("ImDrawList_AddRectFilledMultiColor") void ImDrawList_AddRectFilled
     ImU32 col_bot_right,
     ImU32 col_bot_left
 );
-IMGUI_IMPORT("ImDrawList_AddQuad") void ImDrawList_AddQuad(u64 list, u64 p1, u64 p2, u64 p3, u64 p4, ImU32 col, float thickness);
+IMGUI_IMPORT("ImDrawList_AddQuad") void ImDrawList_AddQuad(u64 list, u64 p1, u64 p2, u64 p3, u64 p4, ImU32 col, float thickness, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddQuadFilled") void ImDrawList_AddQuadFilled(u64 list, u64 p1, u64 p2, u64 p3, u64 p4, ImU32 col);
-IMGUI_IMPORT("ImDrawList_AddTriangle") void ImDrawList_AddTriangle(u64 list, u64 p1, u64 p2, u64 p3, ImU32 col, float thickness);
+IMGUI_IMPORT("ImDrawList_AddTriangle") void ImDrawList_AddTriangle(u64 list, u64 p1, u64 p2, u64 p3, ImU32 col, float thickness, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddTriangleFilled") void ImDrawList_AddTriangleFilled(u64 list, u64 p1, u64 p2, u64 p3, ImU32 col);
-IMGUI_IMPORT("ImDrawList_AddCircle") void ImDrawList_AddCircle(u64 list, u64 center, float radius, ImU32 col, int num_segments, float thickness);
+IMGUI_IMPORT("ImDrawList_AddCircle") void ImDrawList_AddCircle(
+    u64 list,
+    u64 center,
+    float radius,
+    ImU32 col,
+    int num_segments,
+    float thickness,
+    ImDrawFlags flags
+);
 IMGUI_IMPORT("ImDrawList_AddCircleFilled") void ImDrawList_AddCircleFilled(u64 list, u64 center, float radius, ImU32 col, int num_segments);
-IMGUI_IMPORT("ImDrawList_AddNgon") void ImDrawList_AddNgon(u64 list, u64 center, float radius, ImU32 col, int num_segments, float thickness);
+IMGUI_IMPORT("ImDrawList_AddNgon") void ImDrawList_AddNgon(u64 list, u64 center, float radius, ImU32 col, int num_segments, float thickness, ImDrawFlags flags);
 IMGUI_IMPORT("ImDrawList_AddNgonFilled") void ImDrawList_AddNgonFilled(u64 list, u64 center, float radius, ImU32 col, int num_segments);
-IMGUI_IMPORT("ImDrawList_AddEllipse") void ImDrawList_AddEllipse(u64 list, u64 center, u64 radius, ImU32 col, float rot, int num_segments, float thickness);
+IMGUI_IMPORT("ImDrawList_AddEllipse") void ImDrawList_AddEllipse(
+    u64 list,
+    u64 center,
+    u64 radius,
+    ImU32 col,
+    float rot,
+    int num_segments,
+    float thickness,
+    ImDrawFlags flags
+);
 IMGUI_IMPORT("ImDrawList_AddEllipseFilled") void ImDrawList_AddEllipseFilled(u64 list, u64 center, u64 radius, ImU32 col, float rot, int num_segments);
 IMGUI_IMPORT("ImDrawList_AddText") void ImDrawList_AddText(u64 list, u64 pos, ImU32 col, const char* text_begin, const char* text_end);
 IMGUI_IMPORT("ImDrawList_AddText_2") void ImDrawList_AddText_2(
@@ -604,7 +623,8 @@ IMGUI_IMPORT("ImDrawList_AddBezierCubic") void ImDrawList_AddBezierCubic(
     u64 p4,
     ImU32 col,
     float thickness,
-    int num_segments
+    int num_segments,
+    ImDrawFlags flags
 );
 IMGUI_IMPORT("ImDrawList_AddBezierQuadratic") void ImDrawList_AddBezierQuadratic(
     u64 list,
@@ -613,17 +633,16 @@ IMGUI_IMPORT("ImDrawList_AddBezierQuadratic") void ImDrawList_AddBezierQuadratic
     u64 p3,
     ImU32 col,
     float thickness,
-    int num_segments
+    int num_segments,
+    ImDrawFlags flags
 );
-IMGUI_IMPORT("ImDrawList_AddPolyline") void ImDrawList_AddPolyline(
+IMGUI_IMPORT("ImDrawList_AddConvexPolyFilled") void ImDrawList_AddConvexPolyFilled(
     u64 list,
     const ImVec2* points,
     int num_points,
     ImU32 col,
-    float thickness,
     ImDrawFlags flags
 );
-IMGUI_IMPORT("ImDrawList_AddConvexPolyFilled") void ImDrawList_AddConvexPolyFilled(u64 list, const ImVec2* points, int num_points, ImU32 col);
 IMGUI_IMPORT("ImDrawList_AddConcavePolyFilled") void ImDrawList_AddConcavePolyFilled(u64 list, const ImVec2* points, int num_points, ImU32 col);
 IMGUI_IMPORT("ImDrawList_AddImage") void ImDrawList_AddImage(u64 list, u64 tex_ref, u64 p_min, u64 p_max, u64 uv_min, u64 uv_max, ImU32 col);
 IMGUI_IMPORT("ImDrawList_AddImageQuad") void ImDrawList_AddImageQuad(
@@ -2421,16 +2440,24 @@ void ImDrawList::PopTexture() {
     ImDrawList_PopTexture(Imgui::Draw_List_Handle(this));
 }
 
-void ImDrawList::AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness) {
-    ImDrawList_AddLine(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), col, thickness);
+void ImDrawList::PushDrawFlag(ImDrawFlags flags, bool enabled) {
+    ImDrawList_PushDrawFlag(Imgui::Draw_List_Handle(this), flags, enabled);
 }
 
-void ImDrawList::AddLineH(float min_x, float max_x, float y, ImU32 col, float thickness) {
-    ImDrawList_AddLineH(Imgui::Draw_List_Handle(this), min_x, max_x, y, col, thickness);
+void ImDrawList::PopDrawFlag() {
+    ImDrawList_PopDrawFlag(Imgui::Draw_List_Handle(this));
 }
 
-void ImDrawList::AddLineV(float x, float min_y, float max_y, ImU32 col, float thickness) {
-    ImDrawList_AddLineV(Imgui::Draw_List_Handle(this), x, min_y, max_y, col, thickness);
+void ImDrawList::AddLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddLine(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), col, thickness, flags);
+}
+
+void ImDrawList::AddLineH(float min_x, float max_x, float y, ImU32 col, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddLineH(Imgui::Draw_List_Handle(this), min_x, max_x, y, col, thickness, flags);
+}
+
+void ImDrawList::AddLineV(float x, float min_y, float max_y, ImU32 col, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddLineV(Imgui::Draw_List_Handle(this), x, min_y, max_y, col, thickness, flags);
 }
 
 void ImDrawList::AddRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding, float thickness, ImDrawFlags flags) {
@@ -2460,40 +2487,40 @@ void ImDrawList::AddRectFilledMultiColor(
     );
 }
 
-void ImDrawList::AddQuad(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness) {
-    ImDrawList_AddQuad(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), Imgui::Pack(p4), col, thickness);
+void ImDrawList::AddQuad(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddQuad(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), Imgui::Pack(p4), col, thickness, flags);
 }
 
 void ImDrawList::AddQuadFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col) {
     ImDrawList_AddQuadFilled(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), Imgui::Pack(p4), col);
 }
 
-void ImDrawList::AddTriangle(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness) {
-    ImDrawList_AddTriangle(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), col, thickness);
+void ImDrawList::AddTriangle(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddTriangle(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), col, thickness, flags);
 }
 
 void ImDrawList::AddTriangleFilled(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col) {
     ImDrawList_AddTriangleFilled(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), col);
 }
 
-void ImDrawList::AddCircle(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness) {
-    ImDrawList_AddCircle(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments, thickness);
+void ImDrawList::AddCircle(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddCircle(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments, thickness, flags);
 }
 
 void ImDrawList::AddCircleFilled(const ImVec2& center, float radius, ImU32 col, int num_segments) {
     ImDrawList_AddCircleFilled(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments);
 }
 
-void ImDrawList::AddNgon(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness) {
-    ImDrawList_AddNgon(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments, thickness);
+void ImDrawList::AddNgon(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddNgon(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments, thickness, flags);
 }
 
 void ImDrawList::AddNgonFilled(const ImVec2& center, float radius, ImU32 col, int num_segments) {
     ImDrawList_AddNgonFilled(Imgui::Draw_List_Handle(this), Imgui::Pack(center), radius, col, num_segments);
 }
 
-void ImDrawList::AddEllipse(const ImVec2& center, const ImVec2& radius, ImU32 col, float rot, int num_segments, float thickness) {
-    ImDrawList_AddEllipse(Imgui::Draw_List_Handle(this), Imgui::Pack(center), Imgui::Pack(radius), col, rot, num_segments, thickness);
+void ImDrawList::AddEllipse(const ImVec2& center, const ImVec2& radius, ImU32 col, float rot, int num_segments, float thickness, ImDrawFlags flags) {
+    ImDrawList_AddEllipse(Imgui::Draw_List_Handle(this), Imgui::Pack(center), Imgui::Pack(radius), col, rot, num_segments, thickness, flags);
 }
 
 void ImDrawList::AddEllipseFilled(const ImVec2& center, const ImVec2& radius, ImU32 col, float rot, int num_segments) {
@@ -2527,20 +2554,35 @@ void ImDrawList::AddText(
     );
 }
 
-void ImDrawList::AddBezierCubic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& p4, ImU32 col, float thickness, int num_segments) {
-    ImDrawList_AddBezierCubic(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), Imgui::Pack(p4), col, thickness, num_segments);
+void ImDrawList::AddBezierCubic(
+    const ImVec2& p1,
+    const ImVec2& p2,
+    const ImVec2& p3,
+    const ImVec2& p4,
+    ImU32 col,
+    float thickness,
+    int num_segments,
+    ImDrawFlags flags
+) {
+    ImDrawList_AddBezierCubic(
+        Imgui::Draw_List_Handle(this),
+        Imgui::Pack(p1),
+        Imgui::Pack(p2),
+        Imgui::Pack(p3),
+        Imgui::Pack(p4),
+        col,
+        thickness,
+        num_segments,
+        flags
+    );
 }
 
-void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness, int num_segments) {
-    ImDrawList_AddBezierQuadratic(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), col, thickness, num_segments);
+void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, ImU32 col, float thickness, int num_segments, ImDrawFlags flags) {
+    ImDrawList_AddBezierQuadratic(Imgui::Draw_List_Handle(this), Imgui::Pack(p1), Imgui::Pack(p2), Imgui::Pack(p3), col, thickness, num_segments, flags);
 }
 
-void ImDrawList::AddPolyline(const ImVec2* points, int num_points, ImU32 col, float thickness, ImDrawFlags flags) {
-    ImDrawList_AddPolyline(Imgui::Draw_List_Handle(this), points, num_points, col, thickness, flags);
-}
-
-void ImDrawList::AddConvexPolyFilled(const ImVec2* points, int num_points, ImU32 col) {
-    ImDrawList_AddConvexPolyFilled(Imgui::Draw_List_Handle(this), points, num_points, col);
+void ImDrawList::AddConvexPolyFilled(const ImVec2* points, int num_points, ImU32 col, ImDrawFlags flags) {
+    ImDrawList_AddConvexPolyFilled(Imgui::Draw_List_Handle(this), points, num_points, col, flags);
 }
 
 void ImDrawList::AddConcavePolyFilled(const ImVec2* points, int num_points, ImU32 col) {

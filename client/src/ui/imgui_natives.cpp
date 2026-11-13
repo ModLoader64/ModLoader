@@ -3995,6 +3995,26 @@ void Native_ImDrawList_PopTexture(wasm_exec_env_t exec_env, u64* slots) {
     Imgui_Pop_Texture(&call, list);
 }
 
+void Native_ImDrawList_PushDrawFlag(wasm_exec_env_t exec_env, u64* slots) {
+    Imgui_Call call = Imgui_Enter(exec_env, "ImDrawList::PushDrawFlag");
+    ImDrawList* list = Imgui_Draw_List(&call, slots[0]);
+
+    if (call.failed) {
+        return;
+    }
+    list->PushDrawFlag(static_cast<ImDrawFlags>(slots[1]), static_cast<u32>(slots[2]) != 0);
+}
+
+void Native_ImDrawList_PopDrawFlag(wasm_exec_env_t exec_env, u64* slots) {
+    Imgui_Call call = Imgui_Enter(exec_env, "ImDrawList::PopDrawFlag");
+    ImDrawList* list = Imgui_Draw_List(&call, slots[0]);
+
+    if (call.failed) {
+        return;
+    }
+    list->PopDrawFlag();
+}
+
 void Native_ImDrawList_AddLine(wasm_exec_env_t exec_env, u64* slots) {
     Imgui_Call call = Imgui_Enter(exec_env, "ImDrawList::AddLine");
     ImDrawList* list = Imgui_Draw_List(&call, slots[0]);
@@ -4002,7 +4022,7 @@ void Native_ImDrawList_AddLine(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddLine(Imgui_Vec2(slots[1]), Imgui_Vec2(slots[2]), static_cast<ImU32>(slots[3]), Imgui_F32(slots[4]));
+    list->AddLine(Imgui_Vec2(slots[1]), Imgui_Vec2(slots[2]), static_cast<ImU32>(slots[3]), Imgui_F32(slots[4]), static_cast<ImDrawFlags>(slots[5]));
 }
 
 void Native_ImDrawList_AddLineH(wasm_exec_env_t exec_env, u64* slots) {
@@ -4012,7 +4032,14 @@ void Native_ImDrawList_AddLineH(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddLineH(Imgui_F32(slots[1]), Imgui_F32(slots[2]), Imgui_F32(slots[3]), static_cast<ImU32>(slots[4]), Imgui_F32(slots[5]));
+    list->AddLineH(
+        Imgui_F32(slots[1]),
+        Imgui_F32(slots[2]),
+        Imgui_F32(slots[3]),
+        static_cast<ImU32>(slots[4]),
+        Imgui_F32(slots[5]),
+        static_cast<ImDrawFlags>(slots[6])
+    );
 }
 
 void Native_ImDrawList_AddLineV(wasm_exec_env_t exec_env, u64* slots) {
@@ -4022,7 +4049,14 @@ void Native_ImDrawList_AddLineV(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddLineV(Imgui_F32(slots[1]), Imgui_F32(slots[2]), Imgui_F32(slots[3]), static_cast<ImU32>(slots[4]), Imgui_F32(slots[5]));
+    list->AddLineV(
+        Imgui_F32(slots[1]),
+        Imgui_F32(slots[2]),
+        Imgui_F32(slots[3]),
+        static_cast<ImU32>(slots[4]),
+        Imgui_F32(slots[5]),
+        static_cast<ImDrawFlags>(slots[6])
+    );
 }
 
 void Native_ImDrawList_AddRect(wasm_exec_env_t exec_env, u64* slots) {
@@ -4076,7 +4110,15 @@ void Native_ImDrawList_AddQuad(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddQuad(Imgui_Vec2(slots[1]), Imgui_Vec2(slots[2]), Imgui_Vec2(slots[3]), Imgui_Vec2(slots[4]), static_cast<ImU32>(slots[5]), Imgui_F32(slots[6]));
+    list->AddQuad(
+        Imgui_Vec2(slots[1]),
+        Imgui_Vec2(slots[2]),
+        Imgui_Vec2(slots[3]),
+        Imgui_Vec2(slots[4]),
+        static_cast<ImU32>(slots[5]),
+        Imgui_F32(slots[6]),
+        static_cast<ImDrawFlags>(slots[7])
+    );
 }
 
 void Native_ImDrawList_AddQuadFilled(wasm_exec_env_t exec_env, u64* slots) {
@@ -4096,7 +4138,14 @@ void Native_ImDrawList_AddTriangle(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddTriangle(Imgui_Vec2(slots[1]), Imgui_Vec2(slots[2]), Imgui_Vec2(slots[3]), static_cast<ImU32>(slots[4]), Imgui_F32(slots[5]));
+    list->AddTriangle(
+        Imgui_Vec2(slots[1]),
+        Imgui_Vec2(slots[2]),
+        Imgui_Vec2(slots[3]),
+        static_cast<ImU32>(slots[4]),
+        Imgui_F32(slots[5]),
+        static_cast<ImDrawFlags>(slots[6])
+    );
 }
 
 void Native_ImDrawList_AddTriangleFilled(wasm_exec_env_t exec_env, u64* slots) {
@@ -4121,7 +4170,8 @@ void Native_ImDrawList_AddCircle(wasm_exec_env_t exec_env, u64* slots) {
         Imgui_F32(slots[2]),
         static_cast<ImU32>(slots[3]),
         std::clamp(static_cast<int>(slots[4]), 0, 512),
-        Imgui_F32(slots[5])
+        Imgui_F32(slots[5]),
+        static_cast<ImDrawFlags>(slots[6])
     );
 }
 
@@ -4142,7 +4192,14 @@ void Native_ImDrawList_AddNgon(wasm_exec_env_t exec_env, u64* slots) {
     if (call.failed) {
         return;
     }
-    list->AddNgon(Imgui_Vec2(slots[1]), Imgui_F32(slots[2]), static_cast<ImU32>(slots[3]), std::clamp(static_cast<int>(slots[4]), 0, 512), Imgui_F32(slots[5]));
+    list->AddNgon(
+        Imgui_Vec2(slots[1]),
+        Imgui_F32(slots[2]),
+        static_cast<ImU32>(slots[3]),
+        std::clamp(static_cast<int>(slots[4]), 0, 512),
+        Imgui_F32(slots[5]),
+        static_cast<ImDrawFlags>(slots[6])
+    );
 }
 
 void Native_ImDrawList_AddNgonFilled(wasm_exec_env_t exec_env, u64* slots) {
@@ -4168,7 +4225,8 @@ void Native_ImDrawList_AddEllipse(wasm_exec_env_t exec_env, u64* slots) {
         static_cast<ImU32>(slots[3]),
         Imgui_F32(slots[4]),
         std::clamp(static_cast<int>(slots[5]), 0, 512),
-        Imgui_F32(slots[6])
+        Imgui_F32(slots[6]),
+        static_cast<ImDrawFlags>(slots[7])
     );
 }
 
@@ -4228,7 +4286,8 @@ void Native_ImDrawList_AddBezierCubic(wasm_exec_env_t exec_env, u64* slots) {
         Imgui_Vec2(slots[4]),
         static_cast<ImU32>(slots[5]),
         Imgui_F32(slots[6]),
-        std::clamp(static_cast<int>(slots[7]), 0, 512)
+        std::clamp(static_cast<int>(slots[7]), 0, 512),
+        static_cast<ImDrawFlags>(slots[8])
     );
 }
 
@@ -4245,19 +4304,9 @@ void Native_ImDrawList_AddBezierQuadratic(wasm_exec_env_t exec_env, u64* slots) 
         Imgui_Vec2(slots[3]),
         static_cast<ImU32>(slots[4]),
         Imgui_F32(slots[5]),
-        std::clamp(static_cast<int>(slots[6]), 0, 512)
+        std::clamp(static_cast<int>(slots[6]), 0, 512),
+        static_cast<ImDrawFlags>(slots[7])
     );
-}
-
-void Native_ImDrawList_AddPolyline(wasm_exec_env_t exec_env, u64* slots) {
-    Imgui_Call call = Imgui_Enter(exec_env, "ImDrawList::AddPolyline");
-    ImDrawList* list = Imgui_Draw_List(&call, slots[0]);
-    const ImVec2* points = Imgui_Pointer<const ImVec2>(&call, slots[1], static_cast<int>(slots[2]), false);
-
-    if (call.failed) {
-        return;
-    }
-    list->AddPolyline(points, static_cast<int>(slots[2]), static_cast<ImU32>(slots[3]), Imgui_F32(slots[4]), static_cast<ImDrawFlags>(slots[5]));
 }
 
 void Native_ImDrawList_AddConvexPolyFilled(wasm_exec_env_t exec_env, u64* slots) {
@@ -4268,7 +4317,7 @@ void Native_ImDrawList_AddConvexPolyFilled(wasm_exec_env_t exec_env, u64* slots)
     if (call.failed) {
         return;
     }
-    list->AddConvexPolyFilled(points, static_cast<int>(slots[2]), static_cast<ImU32>(slots[3]));
+    list->AddConvexPolyFilled(points, static_cast<int>(slots[2]), static_cast<ImU32>(slots[3]), static_cast<ImDrawFlags>(slots[4]));
 }
 
 void Native_ImDrawList_AddConcavePolyFilled(wasm_exec_env_t exec_env, u64* slots) {
@@ -4782,28 +4831,29 @@ NativeSymbol sNatives[] = {
     Native("ImDrawList_PopClipRect", "(I)", Native_ImDrawList_PopClipRect),
     Native("ImDrawList_PushTexture", "(II)", Native_ImDrawList_PushTexture),
     Native("ImDrawList_PopTexture", "(I)", Native_ImDrawList_PopTexture),
-    Native("ImDrawList_AddLine", "(IIIif)", Native_ImDrawList_AddLine),
-    Native("ImDrawList_AddLineH", "(Ifffif)", Native_ImDrawList_AddLineH),
-    Native("ImDrawList_AddLineV", "(Ifffif)", Native_ImDrawList_AddLineV),
+    Native("ImDrawList_PushDrawFlag", "(Iii)", Native_ImDrawList_PushDrawFlag),
+    Native("ImDrawList_PopDrawFlag", "(I)", Native_ImDrawList_PopDrawFlag),
+    Native("ImDrawList_AddLine", "(IIIifi)", Native_ImDrawList_AddLine),
+    Native("ImDrawList_AddLineH", "(Ifffifi)", Native_ImDrawList_AddLineH),
+    Native("ImDrawList_AddLineV", "(Ifffifi)", Native_ImDrawList_AddLineV),
     Native("ImDrawList_AddRect", "(IIIiffi)", Native_ImDrawList_AddRect),
     Native("ImDrawList_AddRectFilled", "(IIIifi)", Native_ImDrawList_AddRectFilled),
     Native("ImDrawList_AddRectFilledMultiColor", "(IIIiiii)", Native_ImDrawList_AddRectFilledMultiColor),
-    Native("ImDrawList_AddQuad", "(IIIIIif)", Native_ImDrawList_AddQuad),
+    Native("ImDrawList_AddQuad", "(IIIIIifi)", Native_ImDrawList_AddQuad),
     Native("ImDrawList_AddQuadFilled", "(IIIIIi)", Native_ImDrawList_AddQuadFilled),
-    Native("ImDrawList_AddTriangle", "(IIIIif)", Native_ImDrawList_AddTriangle),
+    Native("ImDrawList_AddTriangle", "(IIIIifi)", Native_ImDrawList_AddTriangle),
     Native("ImDrawList_AddTriangleFilled", "(IIIIi)", Native_ImDrawList_AddTriangleFilled),
-    Native("ImDrawList_AddCircle", "(IIfiif)", Native_ImDrawList_AddCircle),
+    Native("ImDrawList_AddCircle", "(IIfiifi)", Native_ImDrawList_AddCircle),
     Native("ImDrawList_AddCircleFilled", "(IIfii)", Native_ImDrawList_AddCircleFilled),
-    Native("ImDrawList_AddNgon", "(IIfiif)", Native_ImDrawList_AddNgon),
+    Native("ImDrawList_AddNgon", "(IIfiifi)", Native_ImDrawList_AddNgon),
     Native("ImDrawList_AddNgonFilled", "(IIfii)", Native_ImDrawList_AddNgonFilled),
-    Native("ImDrawList_AddEllipse", "(IIIifif)", Native_ImDrawList_AddEllipse),
+    Native("ImDrawList_AddEllipse", "(IIIififi)", Native_ImDrawList_AddEllipse),
     Native("ImDrawList_AddEllipseFilled", "(IIIifi)", Native_ImDrawList_AddEllipseFilled),
     Native("ImDrawList_AddText", "(IIiII)", Native_ImDrawList_AddText),
     Native("ImDrawList_AddText_2", "(IIfIiIIfI)", Native_ImDrawList_AddText_2),
-    Native("ImDrawList_AddBezierCubic", "(IIIIIifi)", Native_ImDrawList_AddBezierCubic),
-    Native("ImDrawList_AddBezierQuadratic", "(IIIIifi)", Native_ImDrawList_AddBezierQuadratic),
-    Native("ImDrawList_AddPolyline", "(IIiifi)", Native_ImDrawList_AddPolyline),
-    Native("ImDrawList_AddConvexPolyFilled", "(IIii)", Native_ImDrawList_AddConvexPolyFilled),
+    Native("ImDrawList_AddBezierCubic", "(IIIIIifii)", Native_ImDrawList_AddBezierCubic),
+    Native("ImDrawList_AddBezierQuadratic", "(IIIIifii)", Native_ImDrawList_AddBezierQuadratic),
+    Native("ImDrawList_AddConvexPolyFilled", "(IIiii)", Native_ImDrawList_AddConvexPolyFilled),
     Native("ImDrawList_AddConcavePolyFilled", "(IIii)", Native_ImDrawList_AddConcavePolyFilled),
     Native("ImDrawList_AddImage", "(IIIIIIi)", Native_ImDrawList_AddImage),
     Native("ImDrawList_AddImageQuad", "(IIIIIIIIIIi)", Native_ImDrawList_AddImageQuad),
