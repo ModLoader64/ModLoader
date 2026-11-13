@@ -69,9 +69,6 @@ const bool sRegistered = [] {
 
 bool N64_Platform::Start(Runtime& owner) {
     runtime = &owner;
-    if (owner.config.image != nullptr) {
-        statePath = Path_Join(Path_Join(owner.config.dataDirectory, "states"), owner.config.image->sha1 + ".state");
-    }
     romSpace = static_cast<u32>(owner.config.spaces.size());
     for (u32 index = 0; index < owner.config.spaces.size(); index++) {
         if (strcmp(owner.config.spaces[index].name, "rom") == 0) {

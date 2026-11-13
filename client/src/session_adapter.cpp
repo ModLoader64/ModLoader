@@ -272,6 +272,7 @@ bool Game_Session::Start_Runtime(const std::string& nickname, const std::string&
             .lobby = lobby_name,
             .password = !options.password.empty() ? options.password : clientSettings.Get("network.password"),
             .dataDirectory = options.dataDirectory,
+            .content = patch,
         };
     }
 

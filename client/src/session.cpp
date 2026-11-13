@@ -1,7 +1,9 @@
 #include "game_session.h"
 
 #include "network/names.h"
+#include "patch.h"
 #include "settings.h"
+#include "sha1.h"
 #include "ui/toolbar.h"
 
 #include <chrono>
@@ -83,6 +85,51 @@ void Game_Session::Pause_Emulation(bool paused) {
 void Game_Session::Restart_Emulation() {
     restartRequested = true;
     pauseRequested = false;
+}
+
+void Game_Session::Apply_Patch() {
+    for (const std::string& path : options.modulePaths) {
+        if (!Patch_Path(path)) {
+            continue;
+        }
+
+        if (!patch.empty()) {
+            Log_Warning("content", "already patched?");
+        }
+        else if (auto bytes = File_Read(path); bytes && Patch_Apply(*bytes, image.data)) {
+            patch = std::move(*bytes);
+            image.sha1 = Sha1::Digest(image.data);
+            Log_Info("content", "patched with %s", path.c_str());
+        }
+        else {
+            Log_Warning("content", "%s does not patch this ROM", path.c_str());
+        }
+    }
+}
+
+bool Game_Session::Join_Patch() {
+    Lobby_Client* lobby = runtime->Lobby();
+
+    while (lobby != nullptr && lobby->State() == Lobby_State::Connecting && !quitRequested) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    std::vector<u8> shared = lobby != nullptr && lobby->State() == Lobby_State::Joined ? lobby->Content() : patch;
+    if (shared == patch) {
+        return true;
+    }
+
+    Game_Image joined;
+    if (!platform->Load_Image(options.romPath, joined) || (!shared.empty() && !Patch_Apply(shared, joined.data, imageCapacity)) || !Resize_Image(joined.data.size())) {
+        Log_Error("content", "patch from lobby %s expects a ROM which does not match the one selected", lobby->Lobby_Name().c_str());
+        return false;
+    }
+
+    memcpy(imageBase, joined.data.data(), joined.data.size());
+    joined.sha1 = Sha1::Digest(joined.data);
+    image = std::move(joined);
+    patch = std::move(shared);
+    return true;
 }
 
 void Game_Session::Load_Modules() {
@@ -305,7 +352,7 @@ void Game_Session::Restart() {
 void Game_Session::Emulation_Main() {
     runtime->Enter_Thread();
     runtime->Init_Modules();
-    runResult = adapter->run(handle);
+    runResult = Join_Patch() ? adapter->run(handle) : 1;
     runtime->Shutdown_Modules();
     runtime->Leave_Thread();
     emulationDone = true;
@@ -329,6 +376,7 @@ s32 Game_Session::Run() {
     if (!Open_Adapter() || !platform->Load_Image(options.romPath, image)) {
         return 1;
     }
+    Apply_Patch();
 
     presenter_config.title = "ModLoader - " + image.title + (options.Online() || (!options.offline && !clientSettings.Get("network.server_address").empty()) ? " - " + nickname : "");
     presenter_config.scaling = clientSettings.Scaling();

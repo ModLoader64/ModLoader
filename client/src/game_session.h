@@ -53,6 +53,8 @@ private:
     bool Open_Adapter();
     bool Start_Adapter(const std::string& lobby_name);
     bool Start_Runtime(const std::string& nickname, const std::string& lobby_name);
+    void Apply_Patch();
+    bool Join_Patch();
     void Load_Modules();
     void Build_Ui();
     void On_Event(u32 event, u64 time, const void* data, u64 size);
@@ -78,6 +80,7 @@ private:
     void* handle = nullptr;
     std::unique_ptr<Platform> platform;
     Game_Image image;
+    std::vector<u8> patch;
     std::unique_ptr<Runtime> runtime;
     std::unique_ptr<Presenter> presenter;
     Client_Settings clientSettings;

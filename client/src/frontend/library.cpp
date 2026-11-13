@@ -3,6 +3,7 @@
 #include "module_manifest.h"
 #include "module_package.h"
 #include "network/names.h"
+#include "patch.h"
 #include "wasm_object.h"
 #include <modloader_adapter_api.h>
 
@@ -386,7 +387,7 @@ void Frontend_Library::Scan(bool reindex_artwork) {
         const auto& entry = *iterator;
         std::string extension = Extension(entry.path());
         std::error_code entry_error;
-        if (!entry.is_regular_file(entry_error) || (extension != ".pak" && extension != ".wasm")) {
+        if (!entry.is_regular_file(entry_error) || (extension != ".pak" && extension != ".wasm" && !Patch_Path(extension))) {
             continue;
         }
         plugin_paths.push_back(entry.path());
@@ -402,6 +403,11 @@ void Frontend_Library::Scan(bool reindex_artwork) {
             if (bytes) {
                 manifest = Parse_Module_Manifest(*bytes, path);
             }
+        }
+        else if (Patch_Path(path)) {
+            manifest.emplace();
+            manifest->name = Path_Text(plugin_path.filename());
+            manifest->description = "ROM patch";
         }
         else if (!package_stems.contains(Lowercase(Path_Text(plugin_path.stem())))) {
             auto bytes = File_Read(path);

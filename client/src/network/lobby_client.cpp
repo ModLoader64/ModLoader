@@ -48,6 +48,7 @@ std::unique_ptr<Lobby_Client> Lobby_Client::Start(const Config& config) {
     client->lobby = config.lobby;
     client->password = config.password;
     client->dataDirectory = config.dataDirectory;
+    client->content = config.content;
 
     if (!Identity_Load(Path_Join(config.dataDirectory, gIdentityName), client->identity)) {
         return nullptr;
@@ -80,6 +81,12 @@ Lobby_State Lobby_Client::State() const {
 
 Lobby_Member Lobby_Client::Self() const {
     return { identity.id, nickname };
+}
+
+std::vector<u8> Lobby_Client::Content() const {
+    std::lock_guard guard(lock);
+
+    return content;
 }
 
 void Lobby_Client::Lobby_Key(u8 out_key[32]) const {
@@ -399,7 +406,15 @@ bool Lobby_Client::Read_Members(Message_Reader& reader) {
             return Fail("%s sent a duplicate member or signing key", server.c_str());
         }
     }
-    return reader.At_End() || Fail("invalid member list from %s", server.c_str());
+
+    std::span<u8> rest = reader.Rest();
+    if (reader.Failed() || rest.size() > gMaxLobbyContent) {
+        return Fail("invalid member list from %s", server.c_str());
+    }
+
+    std::lock_guard guard(lock);
+    content.assign(rest.begin(), rest.end());
+    return true;
 }
 
 bool Lobby_Client::Join_Lobby() {
@@ -427,6 +442,10 @@ bool Lobby_Client::Join_Lobby() {
             return Fail("invalid lobby response from %s", server.c_str());
         }
 
+        if (creating && content.size() > gMaxLobbyContent) {
+            return Fail("cannot share %zu bytes with lobby %s: at most %u", content.size(), lobby.c_str(), gMaxLobbyContent);
+        }
+
         if (creating && (!Random_Bytes(salt, sizeof(salt)) || !Key_Pair_New(lobbySecret, created_public))) {
             return Fail("lobby key generation failed");
         }
@@ -442,7 +461,7 @@ bool Lobby_Client::Join_Lobby() {
 
         message = Message_Writer().U8(creating ? Protocol_Lobby_Create : Protocol_Lobby_Join).Text(lobby);
         if (creating) {
-            message.Bytes(salt, sizeof(salt)).Bytes(keys.authKey, 32).Bytes(created_public, 32).Bytes(sealed, sizeof(sealed));
+            message.Bytes(salt, sizeof(salt)).Bytes(keys.authKey, 32).Bytes(created_public, 32).Bytes(sealed, sizeof(sealed)).Bytes(content);
         }
         else {
             message.Bytes(keys.authKey, 32);

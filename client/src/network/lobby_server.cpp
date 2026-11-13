@@ -68,6 +68,7 @@ struct Lobby_Server::Lobby {
     u8 verifier[32];
     u8 publicKey[32];
     u8 sealedSecret[gSealedSecretSize];
+    std::vector<u8> content;
     std::vector<Connection*> members;
 
     ~Lobby() {
@@ -194,6 +195,7 @@ void Lobby_Server::Enter_Lobby(Lobby& lobby, Connection& connection) {
     for (const Connection* member : lobby.members) {
         joined.Bytes(member->member.id).Text(member->member.nickname).Bytes(member->signingKey);
     }
+    joined.Bytes(lobby.content);
 
     connection.Send(joined);
     Message_Writer arrived = Message_Writer().U8(Protocol_Member_Joined).Bytes(connection.member.id).Text(connection.member.nickname).Bytes(connection.signingKey);
@@ -307,6 +309,7 @@ void Lobby_Server::Handle_Lobby_Request(Connection& connection, u8 type, Message
     Lobby* lobby = name ? Find_Lobby(*name) : nullptr;
     u8 auth_key[32];
     u8 verifier[32];
+    std::span<u8> content;
 
     if (connection.lobby != nullptr || !name) {
         connection.Goodbye("invalid lobby request");
@@ -319,7 +322,8 @@ void Lobby_Server::Handle_Lobby_Request(Connection& connection, u8 type, Message
     else if (type == Protocol_Lobby_Create) {
         auto created = std::make_unique<Lobby>();
         if (!reader.Copy(created->salt, gSaltSize) || !reader.Copy(auth_key, 32) || !reader.Copy(created->publicKey, 32) ||
-            !reader.Copy(created->sealedSecret, gSealedSecretSize) || !reader.At_End()) {
+            !reader.Copy(created->sealedSecret, gSealedSecretSize) ||
+            (content = reader.Rest()).size() > gMaxLobbyContent) {
             connection.Goodbye("invalid lobby data");
         }
         else if (lobby != nullptr) {
@@ -328,6 +332,7 @@ void Lobby_Server::Handle_Lobby_Request(Connection& connection, u8 type, Message
         else {
             created->id = ++nextLobbyId;
             created->name = *name;
+            created->content.assign(content.begin(), content.end());
             Lobby_Verifier(auth_key, created->verifier);
             lobby = lobbies.emplace_back(std::move(created)).get();
             Push_Event(Server_Event_Kind::Lobby_Opened, *lobby, &connection);

@@ -43,6 +43,7 @@ public:
         std::string lobby;
         std::string password;
         std::string dataDirectory;
+        std::vector<u8> content;
     };
 
     static std::unique_ptr<Lobby_Client> Start(const Config& config);
@@ -58,6 +59,7 @@ public:
     }
 
     void Lobby_Key(u8 out_key[32]) const;
+    std::vector<u8> Content() const;
     u32 Member_Count() const;
     std::optional<Lobby_Member> Member_At(u32 index) const;
 
@@ -119,6 +121,7 @@ private:
     mutable std::mutex lock;
     Lobby_State state = Lobby_State::Connecting;
     u8 lobbyPublic[32] = {};
+    std::vector<u8> content;
     std::vector<Peer> peers; // only the connection thread writes
     std::deque<Outgoing> outgoing;
     u64 outgoingBytes = 0;

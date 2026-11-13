@@ -50,6 +50,7 @@ private:
     bool Savestates_Allowed() const;
     std::optional<std::vector<u8>> Pack_Image_Changes() const;
     void Restore_Image();
+    std::string State_Path() const;
     std::string statePath;
     u32 saveRetries = 0;
     std::optional<std::vector<u8>> pendingImageChanges;

@@ -58,8 +58,13 @@ std::optional<std::vector<u8>> N64_Platform::Pack_Image_Changes() const {
     return packed;
 }
 
+std::string N64_Platform::State_Path() const {
+    return Path_Join(Path_Join(runtime->config.dataDirectory, "states"), runtime->config.image->sha1 + ".state");
+}
+
 void N64_Platform::Save_State(const ModLoader_Platform_Adapter& adapter, void* handle) {
     saveRetries = gStateRetryRefreshes;
+    statePath = State_Path();
     Retry_Save_State(adapter, handle);
 }
 
@@ -127,6 +132,7 @@ bool N64_Platform::Load_State(const ModLoader_Platform_Adapter& adapter, void* h
     if (!Savestates_Allowed()) {
         return false;
     }
+    statePath = State_Path();
     bytes = File_Read(statePath);
     if (!bytes) {
         Log_Error("session", "cannot read state %s", statePath.c_str());

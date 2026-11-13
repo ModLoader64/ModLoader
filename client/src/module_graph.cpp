@@ -1,5 +1,6 @@
 #include "module_graph.h"
 #include "module_package.h"
+#include "patch.h"
 #include "sha1.h"
 #include "wasm_object.h"
 #include "base/json.h"
@@ -324,6 +325,10 @@ std::optional<Module_Link_Plan> Prepare_Link(const Module_Preparation& runtime, 
     Module_Set selected(runtime);
     Module_Link_Plan plan;
     for (const std::string& path : paths) {
+        if (Patch_Path(path)) {
+            continue; // patches the ROM
+        }
+
         if (runtime.progress != nullptr) {
             (*runtime.progress)(Runtime_Stage::Preparing, Path_File_Name(path.c_str()), 0, 0);
         }

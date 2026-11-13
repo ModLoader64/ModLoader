@@ -69,12 +69,13 @@ constexpr u32 gMaxTopic = 64;
 constexpr u32 gSaltSize = 16;
 constexpr u32 gSealedSecretSize = sizeof(Sealed_Secret);
 constexpr u32 gSealedMessageOverhead = sizeof(Sealed_Message_Header) + sizeof(Signed_Message_Header);
+constexpr u32 gMaxLobbyContent = 8u * 1024 * 1024; // ex: a ROM patch
 
 enum Protocol_Message : u8 {
     // client -> server
     Protocol_Hello = 0x01, // identity key[32], connection signing key[32], transcript/key signature[64], nickname
     Protocol_Lobby_Query = 0x02, // lobby name
-    Protocol_Lobby_Create = 0x03, // name, salt[16], auth key[32], public key[32], sealed secret key[72]
+    Protocol_Lobby_Create = 0x03, // name, salt[16], auth key[32], public key[32], sealed secret key[72], content
     Protocol_Lobby_Join = 0x04, // name, auth key[32]
     Protocol_Lobby_Send = 0x05, // flags (0), topic, sealed payload
     Protocol_Server_Send = 0x06, // flags (gProtocolSealed), topic, payload
@@ -83,7 +84,7 @@ enum Protocol_Message : u8 {
     // server -> client
     Protocol_Welcome = 0x81, // client ID[16]
     Protocol_Lobby_Info = 0x82, // exists (u8), salt[16]
-    Protocol_Lobby_Joined = 0x83, // public key[32], sealed secret[72], count (u16), {ID[16], nickname, signing key[32]}[]
+    Protocol_Lobby_Joined = 0x83, // public key[32], sealed secret[72], count (u16), {ID[16], nickname, signing key[32]}[], content
     Protocol_Lobby_Refused = 0x84, // Protocol_Refusal (u8); wrong password closes connection
     Protocol_Member_Joined = 0x85, // ID[16], nickname, connection signing key[32]
     Protocol_Member_Left = 0x86, // ID[16]
